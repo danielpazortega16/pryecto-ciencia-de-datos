@@ -1,0 +1,11 @@
+{
+  "tm_estaciones": 104,
+  "tu_paradas": 328,
+  "mr_estaciones": 22,
+  "am_estaciones": 14,
+  "mr_viajes": 299100,
+  "tm_validaciones": 363221,
+  "am_boardings": 203554,
+  "tu_transacciones": 832791,
+  "cdc_padron_usuarios": 31050
+}

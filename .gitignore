@@ -1,0 +1,10 @@
+bronze/
+*.duckdb
+*.duckdb.wal
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+__pycache__/
+*.pyc
+datos_red/*.csv
+datos_red/*.jsonl

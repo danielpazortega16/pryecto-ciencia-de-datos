@@ -1,0 +1,21 @@
+name: 'red_metropolitana'
+version: '1.0.0'
+config-version: 2
+
+profile: 'red_metropolitana'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  red_metropolitana:
+    staging:
+      +materialized: view
+      +schema: staging
+    silver:
+      +materialized: table
+      +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold
