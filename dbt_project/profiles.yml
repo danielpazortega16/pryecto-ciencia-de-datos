@@ -1,0 +1,7 @@
+red_metropolitana:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('PROJECT_ROOT') }}/warehouse.duckdb"
+      threads: 4

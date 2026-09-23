@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: bronze
+    meta:
+      external_location: "{{ env_var('PROJECT_ROOT') }}/bronze/{name}/**/*.parquet"
+    tables:
+      - name: tm_estaciones
+        description: Catalogo de estaciones de Transmetro (via batch)
+      - name: tu_paradas
+        description: Catalogo de paradas de Transurbano (via batch)
+      - name: mr_estaciones
+        description: Catalogo de estaciones de MetroRiel (via batch)
+      - name: am_estaciones
+        description: Catalogo de estaciones de Aerometro (via batch)
+      - name: mr_viajes
+        description: Viajes completos de MetroRiel, JSON anidado (via batch)
+      - name: tm_validaciones
+        description: Validaciones (abordajes) de Transmetro (via streaming simulado)
+      - name: am_boardings
+        description: Boardings de Aerometro (via streaming simulado)
+      - name: tu_transacciones
+        description: Transacciones de Transurbano (via batch, decision documentada)
+      - name: cdc_padron_usuarios
+        description: Log de cambios INSERT/UPDATE/DELETE del padron (via CDC)
