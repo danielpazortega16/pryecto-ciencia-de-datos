@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: dim_zona
+    columns:
+      - name: zona_key
+        tests: [unique, not_null]
+  - name: dim_estacion
+    columns:
+      - name: estacion_key
+        tests: [unique, not_null]
+  - name: dim_usuario
+    columns:
+      - name: usuario_key
+        tests: [unique, not_null]
+  - name: dim_tiempo
+    columns:
+      - name: tiempo_key
+        tests: [unique, not_null]
+  - name: fact_abordaje
+    columns:
+      - name: abordaje_key
+        tests: [unique, not_null]
+      - name: estacion_key
+        tests: [not_null]
+  - name: fact_viaje_metroriel
+    columns:
+      - name: viaje_id
+        tests: [unique, not_null]

@@ -1,0 +1,33 @@
+{
+  "corrida_1": {
+    "main_staging.stg_tm_estaciones": 104,
+    "main_silver.silver_tm_validaciones": 362106,
+    "main_silver.silver_tu_transacciones": 786398,
+    "main_silver.silver_mr_viajes": 295511,
+    "main_silver.silver_am_boardings": 203554,
+    "main_silver.silver_cuarentena": 51100,
+    "main_silver.silver_padron_transmetro_scd2": 22326,
+    "main_gold.dim_zona": 15,
+    "main_gold.dim_estacion": 468,
+    "main_gold.dim_usuario": 117203,
+    "main_gold.dim_tiempo": 1075,
+    "main_gold.fact_abordaje": 1647569,
+    "main_gold.fact_viaje_metroriel": 295511
+  },
+  "corrida_2": {
+    "main_staging.stg_tm_estaciones": 104,
+    "main_silver.silver_tm_validaciones": 362106,
+    "main_silver.silver_tu_transacciones": 786398,
+    "main_silver.silver_mr_viajes": 295511,
+    "main_silver.silver_am_boardings": 203554,
+    "main_silver.silver_cuarentena": 51100,
+    "main_silver.silver_padron_transmetro_scd2": 22326,
+    "main_gold.dim_zona": 15,
+    "main_gold.dim_estacion": 468,
+    "main_gold.dim_usuario": 117203,
+    "main_gold.dim_tiempo": 1075,
+    "main_gold.fact_abordaje": 1647569,
+    "main_gold.fact_viaje_metroriel": 295511
+  },
+  "idempotente": true
+}
