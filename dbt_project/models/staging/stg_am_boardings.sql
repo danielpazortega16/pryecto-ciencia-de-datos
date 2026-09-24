@@ -9,4 +9,4 @@ select
     strptime(timestamp_utc, '%Y-%m-%dT%H:%M:%SZ') - interval '6 hours' as fecha_hora_local,
     cast(cabin_number as integer) as cabin_number,
     cast(fare as double) as monto_gtq
-from {{ source('bronze', 'am_boardings') }}
+from {{ bronze_parquet('am_boardings') }}

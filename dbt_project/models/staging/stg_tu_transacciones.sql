@@ -12,4 +12,4 @@ select
         when 7 then 'SALDO_INSUF' when 9 then 'TARJETA_INVALIDA'
         else 'DESCONOCIDO'
     end as estado_desc
-from {{ source('bronze', 'tu_transacciones') }}
+from {{ bronze_parquet('tu_transacciones') }}

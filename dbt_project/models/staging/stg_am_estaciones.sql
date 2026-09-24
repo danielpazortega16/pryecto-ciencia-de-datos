@@ -3,4 +3,4 @@ select
     station_name,
     axis,
     district as zona_canonica  -- ya viene canonico: "Mixco", "Zona 7", etc.
-from {{ source('bronze', 'am_estaciones') }}
+from {{ bronze_parquet('am_estaciones') }}
