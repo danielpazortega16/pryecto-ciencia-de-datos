@@ -1,67 +1,58 @@
-# Agencia Metropolitana de Transporte — Proyecto 1 (Ciencia de Datos)
+# Agencia Metropolitana de Transporte — Proyecto 1
 
-Pipeline Bronze → Silver → Gold para integrar los cuatro operadores de
+Pipeline Bronze/Silver/Gold para integrar los cuatro operadores de
 transporte de la ciudad (Transmetro, Transurbano, MetroRiel, Aerómetro),
 que hoy no comparten formato, llave de usuario, moneda ni definición de
-zona. Ver `docs/decisiones.md` para el razonamiento detrás de cada
-decisión de arquitectura.
+zona. El razonamiento detrás de cada decisión de arquitectura está en
+docs/decisiones.md.
 
 ## Requisitos
 
-- Python 3.11+ (probado con 3.13)
-- Paquetes: `pip install duckdb dbt-duckdb prefect`
-- No requiere Docker ni Postgres para correr esta Fase 1 (ver decisión de
-  sustitución de Kafka en `docs/decisiones.md` §2).
+Python 3.11 o superior, y las librerías duckdb, dbt-duckdb y prefect
+(`pip install duckdb dbt-duckdb prefect`). No hace falta Docker ni
+Postgres para esta fase; la decisión de sustituir Kafka está explicada en
+docs/decisiones.md.
 
 ## Estructura
 
-```
-generar_red_metropolitana.py   # generador oficial del curso
-datos_red/                     # 9 archivos generados (CSV/JSONL), no versionados
-src/ingesta/                   # scripts de ingesta a Bronze (streaming/batch/CDC)
-bronze/                        # lake Parquet particionado por fecha_ingesta, no versionado
-dbt_project/                   # staging -> silver -> gold
-warehouse.duckdb               # Staging/Silver/Gold, no versionado
-orquestacion/flow_prefect.py   # orquesta todo el flujo, idempotente
-docs/                          # decisiones, métricas, DDL, matriz del bus
-```
+- `generar_red_metropolitana.py`: generador oficial del curso.
+- `datos_red/`: los 9 archivos generados (CSV/JSONL). No se sube a git.
+- `src/ingesta/`: scripts de ingesta a Bronze (streaming, batch, CDC).
+- `bronze/`: lake en Parquet particionado por fecha de ingesta. No se sube a git.
+- `dbt_project/`: modelos de staging, silver y gold.
+- `warehouse.duckdb`: base de datos con staging/silver/gold. No se sube a git.
+- `orquestacion/flow_prefect.py`: corre todo el flujo con Prefect.
+- `docs/`: decisiones, métricas, DDL, matriz del bus, manual de usuario.
 
 ## Cómo correr el flujo completo
 
-```bash
-# 1. Generar los datos (si no existen en datos_red/)
-python generar_red_metropolitana.py
+Primero se generan los datos si no existen todavía:
 
-# 2. Correr todo: ingesta a Bronze -> dbt run -> dbt test
+```bash
+python generar_red_metropolitana.py
+```
+
+Y luego un solo comando corre la ingesta, las transformaciones y las
+pruebas de calidad:
+
+```bash
 python orquestacion/flow_prefect.py
 ```
 
-Esto es **idempotente**: se puede correr las veces que se quiera el mismo
-día sin duplicar nada (Bronze sobreescribe la partición del día, Silver y
-Gold son tablas recalculadas por completo). Evidencia de dos corridas con
-conteos idénticos: `docs/evidencia_idempotencia.json`.
+Se puede correr las veces que se quiera el mismo día sin duplicar nada.
+Bronze sobreescribe la carga del día y Silver/Gold se recalculan
+completos en cada corrida, así que es idempotente por construcción. La
+evidencia de dos corridas con los mismos conteos está en
+docs/evidencia_idempotencia.json.
 
-### Correr manualmente por partes
-
-```bash
-# Solo ingesta
-python src/ingesta/run_ingesta_bronze.py
-
-# Solo transformaciones (staging/silver/gold), desde dbt_project/
-export PROJECT_ROOT="/ruta/absoluta/al/proyecto"   # con "/" incluso en Windows
-cd dbt_project
-dbt run --profiles-dir .
-dbt test --profiles-dir .
-
-# Regenerar el DDL de Gold
-python src/ingesta/exportar_ddl_gold.py
-```
-
-`PROJECT_ROOT` debe ser la ruta absoluta del proyecto (con `/` como
-separador, DuckDB lo acepta también en Windows) — la usan
-`dbt_project/models/staging/_sources.yml` y `dbt_project/profiles.yml`
-para ubicar `bronze/` y `warehouse.duckdb` sin depender del directorio
-desde el que se invoque `dbt`.
+Si se quiere correr por partes, la ingesta sola es
+`python src/ingesta/run_ingesta_bronze.py`, y las transformaciones se
+corren desde `dbt_project/` con `dbt run --profiles-dir .` (hay que
+exportar antes la variable `PROJECT_ROOT` con la ruta absoluta del
+proyecto, usando `/` como separador aunque sea Windows, porque de ahí
+toman la ruta tanto `models/staging/_sources.yml` como `profiles.yml`
+para encontrar `bronze/` y `warehouse.duckdb` sin depender del directorio
+desde el que se invoque dbt).
 
 ## Consultar el resultado
 
@@ -73,18 +64,16 @@ con.execute("select * from main_gold.fact_abordaje limit 10").fetchall()
 
 ## Documentación
 
-- `docs/MANUAL_USUARIO.md` — guía paso a paso para clonar, instalar y
-  correr el proyecto desde cero.
-- `docs/decisiones.md` — grano, identidad de usuario, zona conformada,
-  criterios de cuarentena, vía de ingesta por fuente.
-- `docs/matriz_bus.md` — matriz del bus de procesos.
-- `docs/metricas.md` — volumen, calidad, CDC, rendimiento, idempotencia,
-  cobertura (cifras medidas, no supuestas).
-- `docs/ddl_gold.sql` — DDL de la capa Gold.
+En docs/MANUAL_USUARIO.md está la guía paso a paso para alguien que nunca
+ha visto el repo. docs/decisiones.md explica el grano de las tablas de
+hechos, cómo se resolvió la identidad del usuario, la zona conformada y
+los criterios de cuarentena. docs/matriz_bus.md tiene la matriz del bus
+de procesos, docs/metricas.md las cifras medidas de volumen, calidad, CDC,
+rendimiento e idempotencia, y docs/ddl_gold.sql el DDL de la capa gold.
 
-## Pendiente (fuera de alcance de Fase 1)
+## Qué falta
 
-Tablero en Tableau, recomendación de negocio, tabla de features para
-ciencia de datos, gobernanza formal (diccionario de datos, definiciones
-oficiales con dueño) y seudonimización antes de Gold — ver
-`docs/decisiones.md` §7.
+El tablero en Tableau, la recomendación de negocio, la tabla de features
+y la gobernanza formal (diccionario de datos, definiciones oficiales,
+seudonimización antes de gold) quedaron fuera del alcance de esta fase;
+están anotados en docs/decisiones.md.

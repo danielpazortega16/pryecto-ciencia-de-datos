@@ -1,13 +1,17 @@
 # Matriz del bus de procesos
 
-| Proceso de negocio | dim_tiempo | dim_zona | dim_estacion | dim_usuario | dim_operador |
-|---|---|---|---|---|---|
-| Abordaje a cualquier modo (`fact_abordaje`) | X | X (vía estación) | X | X | X |
-| Viaje completo en MetroRiel (`fact_viaje_metroriel`) | X | X (vía estación origen/destino) | X (origen y destino) | X | — (implícito, siempre MetroRiel) |
+fact_abordaje (grano: un abordaje a cualquier modo) usa las cuatro
+dimensiones conformadas: tiempo, zona a través de la estación, estación,
+usuario y operador.
 
-Ambos procesos comparten `dim_tiempo`, `dim_zona`, `dim_estacion` y
-`dim_usuario`: son las dimensiones conformadas de la Agencia. Cualquier
-pregunta que cruce "abordajes en general" con "viajes completos de
-MetroRiel" (por ejemplo, comparar demanda total en una zona contra los
-viajes MetroRiel que realmente la atienden) es válida porque ambas tablas
-de hechos apuntan a las mismas dimensiones.
+fact_viaje_metroriel (grano: un viaje completo puerta a puerta) usa
+tiempo, zona a través de las estaciones de origen y destino, estación
+tanto de origen como de destino, y usuario. El operador es implícito,
+siempre es MetroRiel.
+
+Las dos tablas comparten tiempo, zona, estación y usuario, que son las
+dimensiones conformadas de la Agencia. Por eso se puede cruzar cualquier
+pregunta que compare "abordajes en general" contra "viajes completos de
+MetroRiel", por ejemplo ver la demanda total en una zona contra los
+viajes de MetroRiel que realmente la atienden, sin tener que reconciliar
+nada entre las dos tablas.

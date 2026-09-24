@@ -1,28 +1,26 @@
-# Métricas medidas — Fase 1
+# Métricas medidas - Fase 1
 
-## Volumen (filas por capa)
+## Volumen
 
-| Fuente | Bronze | Silver (limpio) |
+Filas por fuente en Bronze contra Silver ya limpio:
+
+| Fuente | Bronze | Silver |
 |---|---:|---:|
 | Transmetro validaciones | 363,221 | 362,106 |
 | Transurbano transacciones | 832,791 | 786,398 |
 | MetroRiel viajes | 299,100 | 295,511 |
 | Aerómetro boardings | 203,554 | 203,554 |
-| CDC padrón usuarios | 31,050 | — (ver CDC abajo) |
+| CDC padrón usuarios | 31,050 | ver sección CDC |
 
-| Gold | Filas |
-|---|---:|
-| dim_zona | 15 |
-| dim_operador | 4 |
-| dim_estacion | 468 |
-| dim_usuario | 117,203 |
-| dim_tiempo | 1,075 (horas) |
-| fact_abordaje | 1,647,569 |
-| fact_viaje_metroriel | 295,511 |
+Filas en Gold: dim_zona 15, dim_operador 4, dim_estacion 468, dim_usuario
+117,203, dim_tiempo 1,075 horas, fact_abordaje 1,647,569, y
+fact_viaje_metroriel 295,511.
 
-## Calidad (cuarentena, 51,100 filas totales)
+## Calidad
 
-| Motivo | Fuente | Filas | % del total cuarentena |
+La cuarentena tiene 51,100 filas en total:
+
+| Motivo | Fuente | Filas | % del total |
 |---|---|---:|---:|
 | transaccion_no_exitosa | Transurbano | 41,390 | 81.0% |
 | parada_nula | Transurbano | 4,189 | 8.2% |
@@ -30,56 +28,55 @@
 | duplicado_torniquete | Transmetro | 1,115 | 2.2% |
 | fecha_futura | Transurbano | 817 | 1.6% |
 
-`transaccion_no_exitosa` es la mayoría porque agrupa **toda** transacción
-rechazada por el validador (saldo insuficiente o tarjeta inválida, ~15% de
-Transurbano por diseño del generador) — es una decisión de negocio, no un
-defecto de captura (ver `docs/decisiones.md` sección 4).
+El motivo transaccion_no_exitosa domina porque agrupa toda transacción
+rechazada por el validador, saldo insuficiente o tarjeta inválida, que en
+el generador es alrededor del 15% de Transurbano por diseño. Como se
+explica en decisiones.md, esto es una decisión de negocio y no un
+defecto de captura.
 
-## CDC (padrón de Transmetro)
+## CDC del padrón de Transmetro
 
-- Eventos con llave formato Transmetro: 22,326 de 31,050 totales en el
-  archivo (71.9%). El resto (5,223 formato Transurbano, 2,206
-  `SIN-TARJETA`, 1,295 formato MetroRiel) queda fuera del padrón
-  declarado de Transmetro — ver decisión en `docs/decisiones.md` §3.
-- De esos 22,326: **7,731 INSERT, 11,675 UPDATE, 2,920 DELETE**.
-- Tarjetas en el padrón vigente de Transmetro: **17,432** distintas.
-  - **ACTIVAS: 15,096**
-  - **INACTIVAS (dadas de baja): 2,336**
+De las 31,050 filas del archivo CDC, 22,326 tienen llave con formato
+Transmetro (71.9%). El resto queda fuera del padrón declarado: 5,223 con
+formato Transurbano, 2,206 con SIN-TARJETA, y 1,295 con formato MetroRiel.
+
+De esas 22,326 filas de Transmetro: 7,731 son INSERT, 11,675 son UPDATE y
+2,920 son DELETE.
+
+El padrón vigente de Transmetro termina con 17,432 tarjetas distintas,
+de las cuales 15,096 quedan activas y 2,336 dadas de baja.
 
 ## Rendimiento
 
-| Etapa | Duración medida |
-|---|---:|
-| Ingesta a Bronze (streaming simulado + batch + CDC, ~1.7M filas origen) | ~80 s (primera corrida) |
-| `dbt run` completo (13 vistas Staging + 7 tablas Silver + 7 tablas Gold) | ~4 s |
-| `dbt test` (13 pruebas unique/not_null) | ~0.4 s |
+La ingesta completa a Bronze (streaming simulado más batch más CDC,
+alrededor de 1.7 millones de filas de origen) tomó unos 80 segundos en la
+primera corrida. El dbt run completo, con 13 vistas de staging, 7 tablas
+de silver y 7 de gold, tomó unos 4 segundos. Las 13 pruebas de dbt test
+corrieron en menos de medio segundo.
 
-| Tamaño en disco | |
-|---|---:|
-| Bronze (Parquet, particionado por fecha) | 30.3 MB |
-| `warehouse.duckdb` (Staging vistas + Silver + Gold, tablas materializadas) | 130.8 MB |
-
-Tiempo de consulta del tablero: pendiente de Fase 2 (Tableau aún no
-conectado).
+En disco, Bronze en Parquet ocupa 30.3 MB y warehouse.duckdb, con
+staging, silver y gold materializados, ocupa 130.8 MB. El tiempo de
+consulta del tablero todavía no se puede medir porque Tableau no está
+conectado.
 
 ## Idempotencia
 
-Ver `docs/evidencia_idempotencia.json`: las 13 tablas comparadas
-(Staging, Silver, Gold) tienen **conteos idénticos** entre la corrida 1 y
-la corrida 2 del pipeline completo (ingesta + dbt run) el mismo día.
+En docs/evidencia_idempotencia.json quedaron los conteos de las 13 tablas
+comparadas entre la primera y la segunda corrida del pipeline completo el
+mismo día, y son idénticos en las 13.
 
-## Cobertura (parcial — se completa en Fase 2 con el tablero)
+## Cobertura
 
-Zonas con al menos una estación/parada de algún operador (`dim_zona`,
-15 zonas/municipios): Mixco, San Miguel Petapa, Villa Nueva, y las zonas
-numeradas 1, 4, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18.
+dim_zona tiene 15 zonas o municipios con al menos una estación o parada
+de algún operador: Mixco, San Miguel Petapa, Villa Nueva, y las zonas
+numeradas 1, 4, 6, 7, 8, 9, 10, 11, 12, 13, 17 y 18. Guatemala tiene 25
+zonas numeradas, así que 13 de ellas (2, 3, 5, 14, 15, 16, 19, 20, 21, 22,
+23, 24 y 25) no tienen ninguna estación de ningún operador en este
+dataset, lo cual es un buen candidato a corredor descubierto para la
+recomendación de Fase 2.
 
-Guatemala tiene 25 zonas numeradas; **13 zonas (2, 3, 5, 14, 15, 16, 19,
-20, 21, 22, 23, 24, 25) no tienen ninguna estación de ningún operador** en
-este dataset — candidatas a "corredor descubierto" para la recomendación
-de Fase 2.
-
-Usuarios que usan más de un modo: no calculable de forma confiable en
-Fase 1 porque `dim_usuario` no unifica identidad entre operadores (ver
-límite declarado en `docs/decisiones.md` §4). Requiere la heurística de
-transbordo (extra opcional) o una fuente de identidad que hoy no existe.
+No se puede calcular todavía cuántos usuarios usan más de un modo, porque
+dim_usuario no unifica identidad entre operadores, como se explica en
+decisiones.md. Eso necesitaría la heurística de transbordo que el
+enunciado deja como extra opcional, o una fuente de identidad que hoy no
+existe.
