@@ -73,6 +73,8 @@ con.execute("select * from main_gold.fact_abordaje limit 10").fetchall()
 
 ## Documentación
 
+- `docs/MANUAL_USUARIO.md` — guía paso a paso para clonar, instalar y
+  correr el proyecto desde cero.
 - `docs/decisiones.md` — grano, identidad de usuario, zona conformada,
   criterios de cuarentena, vía de ingesta por fuente.
 - `docs/matriz_bus.md` — matriz del bus de procesos.
