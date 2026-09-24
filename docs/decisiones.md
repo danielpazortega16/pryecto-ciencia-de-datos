@@ -30,11 +30,12 @@ Transmetro o Aerómetro, lo cual es aceptable porque nada en la Fase 2
 pide demanda de Transurbano en tiempo real.
 
 Por la ventana de entrega no se levantó Kafka en Docker. El script
-src/ingesta/ingesta_streaming.py simula productor, tópico y consumidor
-leyendo el CSV línea por línea y publicando cada fila con una función
-publicar_evento() que está aislada del resto del pipeline a propósito,
-para poder cambiarla por un productor y consumidor reales sin tocar
-Bronze ni lo que viene después.
+src/ingesta/ingesta_streaming.py simula el consumer que recibe el tópico y
+lo escribe a Bronze en microbatches, que es como se hace también en
+producción real: ningún consumer serio hace un insert por evento, acumula
+y hace flush. Si más adelante se conecta un Kafka de verdad, lo único que
+cambia es de dónde sale el CSV, la función que escribe a Bronze no se
+toca.
 
 Bronze vive en un lake de carpetas más Parquet particionado por fecha de
 ingesta, no en el warehouse. La razón es que uno de los archivos
