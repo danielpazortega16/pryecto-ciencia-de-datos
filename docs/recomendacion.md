@@ -30,7 +30,7 @@ hábil.
 
 ## Recomendación
 
-Se recomienda dos acciones, en este orden.
+Se recomiendan dos acciones, en este orden.
 
 Primero, ubicar la estación de transbordo en la estación 3 de MetroRiel,
 en la Zona 12. Es la estación desde la que más viajes completos
