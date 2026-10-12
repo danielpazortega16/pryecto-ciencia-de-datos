@@ -22,5 +22,5 @@ select
     cast(hora_ts as date) as fecha,
     extract(hour from hora_ts) as hora_del_dia,
     dayofweek(hora_ts) not in (0, 6) as dia_habil,
-    extract(hour from hora_ts) in (5, 6, 7, 8, 16, 17, 18, 19) as hora_pico
+    {{ es_hora_pico('hora_ts') }} as hora_pico
 from horas

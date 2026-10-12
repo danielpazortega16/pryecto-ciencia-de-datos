@@ -5,7 +5,7 @@
 -- demanda observada en las zonas 12, 8, 1, 6 y 17.
 select
     v.viaje_id,
-    'METRORIEL:' || v.tarjeta_mr as usuario_key,
+    {{ pseudonimo("'METRORIEL'", 'v.tarjeta_mr') }} as usuario_key,
     eo.estacion_key as estacion_origen_key,
     ed.estacion_key as estacion_destino_key,
     cast(strftime(v.ts_entrada, '%Y%m%d%H') as bigint) as tiempo_key_entrada,

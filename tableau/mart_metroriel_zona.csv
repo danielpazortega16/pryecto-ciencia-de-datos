@@ -1,0 +1,29 @@
+zona_nombre,zona_tipo,estaciones_metroriel,en_trazado_metroriel,abordajes_otros_modos,abordajes_metroriel,ranking_demanda_otros_modos
+Mixco,MUNICIPIO,0,false,132768,0,1
+Zona 7,ZONA_GUATEMALA,0,false,117431,0,2
+Zona 17,ZONA_GUATEMALA,4,true,94799,53755,3
+Zona 13,ZONA_GUATEMALA,0,false,94131,0,4
+Zona 12,ZONA_GUATEMALA,4,true,93933,53970,5
+Villa Nueva,MUNICIPIO,0,false,93005,0,6
+Zona 18,ZONA_GUATEMALA,0,false,91842,0,7
+Zona 11,ZONA_GUATEMALA,0,false,85943,0,8
+Zona 1,ZONA_GUATEMALA,4,true,83367,53803,9
+San Miguel Petapa,MUNICIPIO,0,false,83257,0,10
+Zona 8,ZONA_GUATEMALA,5,true,80157,66924,11
+Zona 4,ZONA_GUATEMALA,0,false,77918,0,12
+Zona 9,ZONA_GUATEMALA,0,false,76363,0,13
+Zona 10,ZONA_GUATEMALA,0,false,75304,0,14
+Zona 6,ZONA_GUATEMALA,5,true,71840,67059,15
+Zona 21,ZONA_GUATEMALA,0,false,0,0,16
+Zona 2,ZONA_GUATEMALA,0,false,0,0,16
+Zona 23,ZONA_GUATEMALA,0,false,0,0,16
+Zona 22,ZONA_GUATEMALA,0,false,0,0,16
+Zona 16,ZONA_GUATEMALA,0,false,0,0,16
+Zona 25,ZONA_GUATEMALA,0,false,0,0,16
+Zona 19,ZONA_GUATEMALA,0,false,0,0,16
+Zona 24,ZONA_GUATEMALA,0,false,0,0,16
+Zona 15,ZONA_GUATEMALA,0,false,0,0,16
+Zona 14,ZONA_GUATEMALA,0,false,0,0,16
+Zona 3,ZONA_GUATEMALA,0,false,0,0,16
+Zona 20,ZONA_GUATEMALA,0,false,0,0,16
+Zona 5,ZONA_GUATEMALA,0,false,0,0,16

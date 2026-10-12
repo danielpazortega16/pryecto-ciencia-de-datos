@@ -8,7 +8,7 @@ with tm as (
     select
         'TRANSMETRO' as operador,
         cast(validacion_id as varchar) as id_origen,
-        'TRANSMETRO:' || tarjeta_tm as usuario_key,
+        {{ pseudonimo("'TRANSMETRO'", 'tarjeta_tm') }} as usuario_key,
         estacion_id as codigo_estacion,
         fecha_hora,
         monto_gtq,
@@ -19,7 +19,7 @@ tu as (
     select
         'TRANSURBANO' as operador,
         cast(transaccion_id as varchar) as id_origen,
-        'TRANSURBANO:' || tarjeta_tu as usuario_key,
+        {{ pseudonimo("'TRANSURBANO'", 'tarjeta_tu') }} as usuario_key,
         cod_parada as codigo_estacion,
         fecha_hora,
         monto_gtq,
@@ -30,7 +30,7 @@ mr as (
     select
         'METRORIEL' as operador,
         cast(viaje_id as varchar) as id_origen,
-        'METRORIEL:' || tarjeta_mr as usuario_key,
+        {{ pseudonimo("'METRORIEL'", 'tarjeta_mr') }} as usuario_key,
         cast(estacion_entrada as varchar) as codigo_estacion,
         ts_entrada as fecha_hora,
         monto_gtq,
@@ -41,7 +41,7 @@ am as (
     select
         'AEROMETRO' as operador,
         cast(boarding_id as varchar) as id_origen,
-        'AEROMETRO:' || tarjeta_am as usuario_key,
+        {{ pseudonimo("'AEROMETRO'", 'tarjeta_am') }} as usuario_key,
         station_code as codigo_estacion,
         fecha_hora,
         monto_gtq,

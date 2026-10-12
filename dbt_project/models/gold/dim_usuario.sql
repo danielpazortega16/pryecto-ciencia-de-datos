@@ -1,9 +1,12 @@
--- Estrategia de identidad (ver docs/decisiones.md): no existe crosswalk
--- entre las 4 tarjetas de un mismo pasajero, asi que la llave conformada
--- es por operador: usuario_key = operador || ':' || llave_nativa. Esto es
--- una aproximacion declarada, no una identidad de persona; el limite es
--- que un pasajero con tarjeta de dos sistemas aparece aqui como dos
--- usuarios distintos.
+-- Estrategia de identidad (ver docs/decisiones.md). No existe tabla que
+-- relacione las tarjetas de un mismo pasajero, asi que hay dos niveles:
+--   usuario_key: una llave por (operador, tarjeta), seudonimizada con
+--     sha256 + sal. Es la identidad "segura": nunca junta dos tarjetas.
+--   persona_key: supuesto declarado, no hecho verificable. Para Transmetro,
+--     Transurbano y MetroRiel se asume que el numero dentro de la tarjeta
+--     (TC-00013132, 0000013132, MR0013132) identifica a la misma persona.
+--     Aerometro entrega un hash opaco y no se puede vincular.
+-- La tarjeta en claro no sale de Silver: Gold solo guarda seudonimos.
 with tm as (
     select
         'TRANSMETRO' as operador,
@@ -37,10 +40,18 @@ todos as (
     union all select * from mr union all select * from am
 )
 select
-    operador || ':' || llave_nativa as usuario_key,
+    {{ pseudonimo('operador', 'llave_nativa') }} as usuario_key,
     operador,
-    llave_nativa,
     perfil,
     zona_residencia,
-    estado_padron
+    estado_padron,
+    case
+        when operador in ('TRANSMETRO', 'TRANSURBANO', 'METRORIEL')
+        then {{ pseudonimo("'PERSONA'", "cast(cast(regexp_extract(llave_nativa, '[0-9]+') as bigint) as varchar)") }}
+        else {{ pseudonimo('operador', 'llave_nativa') }}
+    end as persona_key,
+    case
+        when operador in ('TRANSMETRO', 'TRANSURBANO', 'METRORIEL') then 'NUMERO_TARJETA'
+        else 'SIN_VINCULO'
+    end as vinculo_persona
 from todos
