@@ -76,8 +76,8 @@ Gobernanza y seguridad: docs/diccionario_datos.md,
 docs/definiciones_oficiales.md y docs/seguridad.md.
 
 Consumo: docs/recomendacion.md (la recomendación para la Agencia),
-docs/features.md (tabla de features desde Silver) y la carpeta tableau/
-con los CSV que lee el tablero.
+docs/features.md (tabla de features desde Silver), docs/tablero.md y la
+carpeta tableau/ con el tablero y los CSV que lee.
 
 ## Variables de entorno
 
@@ -94,7 +94,7 @@ python src/ingesta/verificar_idempotencia.py
 Corre ingesta y dbt dos veces y compara el conteo de las tablas de silver,
 gold y features. Debe terminar diciendo que los conteos son idénticos.
 
-## Qué falta
+## Tablero
 
-El tablero de Tableau (el archivo .twbx) se arma con los CSV de la carpeta
-tableau/; esa parte es manual en Tableau.
+El tablero está en tableau/tablero_agencia.twbx y se explica en
+docs/tablero.md. Se abre con Tableau Public o Tableau Desktop.

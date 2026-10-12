@@ -10,3 +10,5 @@ datos_red/*.csv
 datos_red/*.jsonl
 .env
 dbt_project/.user.yml
+*.twbr
+~*.twbr
