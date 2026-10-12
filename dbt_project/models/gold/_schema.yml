@@ -27,3 +27,11 @@ models:
     columns:
       - name: viaje_id
         tests: [unique, not_null]
+  - name: mart_cobertura_zona
+    columns:
+      - name: zona_nombre
+        tests: [unique, not_null]
+  - name: mart_metroriel_zona
+    columns:
+      - name: zona_nombre
+        tests: [unique, not_null]

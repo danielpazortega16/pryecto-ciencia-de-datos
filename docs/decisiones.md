@@ -89,14 +89,23 @@ se expande el primer caso a "Zona N" y el segundo se pasa a título
 
 La identidad del usuario no tiene solución perfecta, y el propio
 enunciado lo advierte: no existe ninguna tabla que relacione las cuatro
-tarjetas de un mismo pasajero. La estrategia que se adoptó fue construir
-la llave conformada como operador más dos puntos más llave nativa, por
-ejemplo TRANSMETRO:TC-00013132. Es una aproximación declarada, no una
-identidad de persona real, y su límite es explícito: un pasajero con
-tarjeta de Transmetro y de Transurbano va a aparecer como dos usuarios
-distintos en dim_usuario. Medir transbordo real necesitaría una
-heurística espacio-temporal (el enunciado la menciona como extra
-opcional) que no se resolvió en esta fase.
+tarjetas de un mismo pasajero. Se trabajó con dos niveles. El primero es
+usuario_key, una llave por operador y tarjeta (por ejemplo la tarjeta
+TC-00013132 de Transmetro), que nunca junta dos tarjetas y por eso es la
+identidad segura. El segundo es persona_key, que es un supuesto
+declarado: para Transmetro, Transurbano y MetroRiel se asume que el
+número dentro de la tarjeta (TC-00013132, 0000013132, MR0013132)
+identifica a la misma persona, y se usa para medir transbordo y para la
+tabla de features. Aerómetro entrega un hash opaco y no se puede
+vincular, así que cuenta como persona aparte.
+
+Este supuesto no se puede verificar con los datos. En 36,827 de los
+55,884 números distintos que aparecen en esos tres sistemas el número se
+repite en más de un operador, pero como los tres numeran del 1 al 60,000
+también se cruzarían por azar. Por eso persona_key se usa solo donde
+hace falta (transbordo y features) y todo lo demás cuelga de usuario_key.
+La consecuencia es que la cifra de transbordo es una cota basada en un
+supuesto y que Aerómetro queda subestimado.
 
 Las reglas de calidad se mandan a cuarentena en silver_cuarentena.sql y
 nunca se descartan en silencio: duplicado de torniquete en Transmetro
@@ -146,18 +155,34 @@ dimensión tiempo.
 ## Orquestación e idempotencia
 
 orquestacion/flow_prefect.py encadena ingesta a Bronze, dbt run de
-staging a silver a gold, y dbt test. Es idempotente porque Bronze
-sobreescribe el Parquet de la partición del día en cada corrida, no
-acumula copias, y porque Silver y Gold están materializados como tablas
-que se recalculan por completo desde Bronze en cada corrida, sin ningún
-insert incremental que pueda duplicar algo. La evidencia de dos corridas
-con conteos idénticos en las 13 tablas comparadas está en
-docs/evidencia_idempotencia.json.
+staging a silver a gold y features, dbt test y la exportación de las
+tablas que lee Tableau. Es idempotente por dos razones. Bronze acumula
+una carpeta por cada día de carga (la capa cruda se conserva), pero si se
+corre dos veces el mismo día sobreescribe la partición de ese día. Y
+Staging toma siempre solo la última entrega de cada fuente, con el macro
+ultima_carga, así que la carga de otro día no duplica nada aguas abajo.
+Silver, Gold y features son tablas que se recalculan por completo en cada
+corrida.
 
-## Pendiente para más adelante
+Esto se aprendió por las malas: la primera versión leía todas las
+particiones de Bronze y era idempotente solo si se corría dos veces el
+mismo día. Al aparecer una segunda carga de otro día, fact_abordaje pasó
+de 1.6 a 14 millones de filas. La prueba que se corre ahora,
+src/ingesta/verificar_idempotencia.py, se hace con dos cargas de días
+distintos presentes en Bronze y compara el conteo de 20 tablas entre dos
+corridas completas; deja la evidencia en docs/evidencia_idempotencia.json.
 
-Falta seudonimizar la llave nativa antes de Gold, porque hoy dim_usuario
-guarda la tarjeta en claro y habría que hashearla antes de exponerla a
-Tableau. Falta también el diccionario de datos formal de Gold con
-definiciones oficiales y dueño asignado, y por supuesto todo lo de Fase
-2: el tablero, la recomendación y la tabla de features.
+## Seguridad y gobernanza
+
+La tarjeta en claro no pasa a Gold: usuario_key y persona_key son
+seudónimos (sha256 con sal tomada de la variable PSEUDO_SALT). Las
+decisiones de seguridad están en docs/seguridad.md, las definiciones
+oficiales con su dueño en docs/definiciones_oficiales.md, el diccionario
+de Gold en docs/diccionario_datos.md y el linaje en docs/linaje.md.
+
+## Tablero y recomendación
+
+Las tablas que lee Tableau son las mart_* de la capa Gold, exportadas a
+CSV en la carpeta tableau/ (así se evita conectar Tableau a DuckDB). La
+recomendación está en docs/recomendacion.md y la tabla de features en
+docs/features.md.

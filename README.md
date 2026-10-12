@@ -65,15 +65,36 @@ con.execute("select * from main_gold.fact_abordaje limit 10").fetchall()
 ## Documentación
 
 En docs/MANUAL_USUARIO.md está la guía paso a paso para alguien que nunca
-ha visto el repo. docs/decisiones.md explica el grano de las tablas de
-hechos, cómo se resolvió la identidad del usuario, la zona conformada y
-los criterios de cuarentena. docs/matriz_bus.md tiene la matriz del bus
-de procesos, docs/metricas.md las cifras medidas de volumen, calidad, CDC,
-rendimiento e idempotencia, y docs/ddl_gold.sql el DDL de la capa gold.
+ha visto el repo. El razonamiento detrás de cada decisión (grano, identidad
+del usuario, zona conformada, cuarentena, idempotencia) está en
+docs/decisiones.md, y las cifras medidas en docs/metricas.md.
+
+Arquitectura y modelo: docs/matriz_bus.md, docs/ddl_gold.sql y
+docs/linaje.md (de cada tabla de gold hasta el archivo crudo).
+
+Gobernanza y seguridad: docs/diccionario_datos.md,
+docs/definiciones_oficiales.md y docs/seguridad.md.
+
+Consumo: docs/recomendacion.md (la recomendación para la Agencia),
+docs/features.md (tabla de features desde Silver) y la carpeta tableau/
+con los CSV que lee el tablero.
+
+## Variables de entorno
+
+PSEUDO_SALT es la sal con que se seudonimiza la tarjeta. Si no existe se
+usa una de desarrollo; para una corrida real hay que definirla (ver
+.env.example). No se sube al repositorio.
+
+## Verificar idempotencia
+
+```bash
+python src/ingesta/verificar_idempotencia.py
+```
+
+Corre ingesta y dbt dos veces y compara el conteo de las tablas de silver,
+gold y features. Debe terminar diciendo que los conteos son idénticos.
 
 ## Qué falta
 
-El tablero en Tableau, la recomendación de negocio, la tabla de features
-y la gobernanza formal (diccionario de datos, definiciones oficiales,
-seudonimización antes de gold) quedaron fuera del alcance de esta fase;
-están anotados en docs/decisiones.md.
+El tablero de Tableau (el archivo .twbx) se arma con los CSV de la carpeta
+tableau/; esa parte es manual en Tableau.

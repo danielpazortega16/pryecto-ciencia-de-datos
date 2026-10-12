@@ -2,7 +2,7 @@
 Orquestacion del flujo completo con Prefect (1.5).
 
 Corre: ingesta a Bronze (streaming simulado + batch + CDC) -> dbt run
-(staging -> silver -> gold) -> dbt test. Idempotente: se puede correr
+(staging -> silver -> gold + features) -> dbt test -> exportacion a CSV para Tableau. Idempotente: se puede correr
 tantas veces como se quiera el mismo dia sin duplicar nada (Bronze
 sobreescribe la particion del dia, Silver/Gold son tablas recalculadas
 por completo en cada corrida).
@@ -65,11 +65,19 @@ def dbt_test():
     return resultado.returncode == 0
 
 
+@task
+def exportar_tableau():
+    sys.path.insert(0, os.path.join(BASE_DIR, "src", "ingesta"))
+    import exportar_tableau as exp
+    exp.main()
+
+
 @flow(name="red-metropolitana-pipeline")
 def pipeline_completo():
     conteos_bronze = ingesta_bronze()
     dbt_run()
     tests_ok = dbt_test()
+    exportar_tableau()
     print(f"Conteos Bronze: {conteos_bronze}")
     print(f"dbt test paso: {tests_ok}")
     return conteos_bronze

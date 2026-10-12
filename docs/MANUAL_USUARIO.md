@@ -66,6 +66,31 @@ Este comando se puede correr las veces que se quiera el mismo día sin
 duplicar nada, porque Bronze sobreescribe la carga del día y Silver y
 Gold se recalculan completos cada vez.
 
+## Probar que es idempotente
+
+```bash
+python src/ingesta/verificar_idempotencia.py
+```
+
+Corre la ingesta y dbt dos veces seguidas y muestra una tabla con el
+conteo de cada tabla en las dos corridas. Al final tiene que decir
+"IDEMPOTENTE, conteos identicos". Es la prueba que se puede hacer en vivo
+en la defensa.
+
+## Archivos para Tableau
+
+Al final del flujo se escriben en la carpeta tableau/ los CSV que lee el
+tablero (mart_demanda, mart_cobertura_zona, mart_transbordo,
+mart_metroriel_zona y mart_metroriel_od). En Tableau se abren con
+Conectar, Archivo de texto.
+
+## Variable PSEUDO_SALT
+
+La tarjeta se seudonimiza con una sal. Para una corrida normal no hace
+falta hacer nada, pero si se quiere definir la propia, en PowerShell
+`$env:PSEUDO_SALT = "algo-secreto"` antes de correr el flujo. Si se
+cambia, los seudónimos cambian.
+
 ## Revisar los resultados
 
 Los datos finales quedan en un archivo warehouse.duckdb en la raíz del

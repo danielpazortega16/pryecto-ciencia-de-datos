@@ -48,35 +48,37 @@ de las cuales 15,096 quedan activas y 2,336 dadas de baja.
 
 ## Rendimiento
 
-La ingesta completa a Bronze (streaming simulado más batch más CDC,
-alrededor de 1.7 millones de filas de origen) tomó unos 80 segundos en la
-primera corrida. El dbt run completo, con 13 vistas de staging, 7 tablas
-de silver y 7 de gold, tomó unos 4 segundos. Las 13 pruebas de dbt test
-corrieron en menos de medio segundo.
+La ingesta completa a Bronze (streaming simulado, batch y CDC, alrededor
+de 1.7 millones de filas de origen) toma unos 1.2 segundos. La
+primera versión, que movía el streaming fila por fila en Python, tomaba
+unos 80. El dbt run completo (13 vistas de staging, 7 tablas de silver, 12
+de gold y la de features) toma entre 10 y 24 segundos según la máquina. Las
+pruebas de dbt test corren en menos de 2 segundos.
 
-En disco, Bronze en Parquet ocupa 30.3 MB y warehouse.duckdb, con
-staging, silver y gold materializados, ocupa 130.8 MB. El tiempo de
-consulta del tablero todavía no se puede medir porque Tableau no está
-conectado.
+En disco, Bronze en Parquet ocupa 56 MB con dos cargas acumuladas (una
+por día) y warehouse.duckdb, con silver, gold y features, ocupa 138 MB. Una
+consulta de las que usa el tablero sobre mart_demanda tarda unos 3
+milisegundos, y una agregación directa sobre fact_abordaje (1.6 millones
+de filas) unos 15.
 
 ## Idempotencia
 
-En docs/evidencia_idempotencia.json quedaron los conteos de las 13 tablas
-comparadas entre la primera y la segunda corrida del pipeline completo el
-mismo día, y son idénticos en las 13.
+En docs/evidencia_idempotencia.json están los conteos de 20 tablas
+(silver, gold y features) en dos corridas completas con dos cargas de días
+distintos en Bronze, y son idénticos en las 20. Se puede repetir con
+python src/ingesta/verificar_idempotencia.py.
 
 ## Cobertura
 
 dim_zona tiene 15 zonas o municipios con al menos una estación o parada
 de algún operador: Mixco, San Miguel Petapa, Villa Nueva, y las zonas
-numeradas 1, 4, 6, 7, 8, 9, 10, 11, 12, 13, 17 y 18. Guatemala tiene 25
-zonas numeradas, así que 13 de ellas (2, 3, 5, 14, 15, 16, 19, 20, 21, 22,
-23, 24 y 25) no tienen ninguna estación de ningún operador en este
-dataset, lo cual es un buen candidato a corredor descubierto para la
-recomendación de Fase 2.
+numeradas 1, 4, 6, 7, 8, 9, 10, 11, 12, 13, 17 y 18. Tres de ellas (1, 12 y
+17) tienen los cuatro operadores. Guatemala tiene 25 zonas numeradas, así
+que 13 (2, 3, 5, 14, 15, 16, 19, 20, 21, 22, 23, 24 y 25) no tienen ninguna
+estación de ningún operador. Está en mart_cobertura_zona.
 
-No se puede calcular todavía cuántos usuarios usan más de un modo, porque
-dim_usuario no unifica identidad entre operadores, como se explica en
-decisiones.md. Eso necesitaría la heurística de transbordo que el
-enunciado deja como extra opcional, o una fuente de identidad que hoy no
-existe.
+Usuarios que usan más de un modo: 36,827 de 70,380 personas (52.3%), de
+las cuales 9,996 usan tres, siempre bajo el supuesto de que el número
+dentro de la tarjeta identifica a la misma persona (ver decisiones.md). Es
+una cota basada en un supuesto, no una medición directa. Está en
+mart_transbordo.
