@@ -69,8 +69,8 @@ ha visto el repo. El razonamiento detrás de cada decisión (grano, identidad
 del usuario, zona conformada, cuarentena, idempotencia) está en
 docs/decisiones.md, y las cifras medidas en docs/metricas.md.
 
-Arquitectura y modelo: docs/matriz_bus.md, docs/ddl_gold.sql y
-docs/linaje.md (de cada tabla de gold hasta el archivo crudo).
+Arquitectura y modelo: docs/diagrama_modelo.md, docs/matriz_bus.md,
+docs/ddl_gold.sql y docs/linaje.md (de cada tabla de gold hasta el archivo crudo).
 
 Gobernanza y seguridad: docs/diccionario_datos.md,
 docs/definiciones_oficiales.md y docs/seguridad.md.
