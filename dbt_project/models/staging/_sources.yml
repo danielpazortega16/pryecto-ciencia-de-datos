@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: Archivos crudos tal como llegaron, en Parquet particionado por fecha de ingesta.
+    tables:
+      - name: tm_estaciones
+        description: Catalogo de estaciones de Transmetro (batch)
+      - name: tu_paradas
+        description: Catalogo de paradas de Transurbano (batch)
+      - name: mr_estaciones
+        description: Catalogo de estaciones de MetroRiel (batch)
+      - name: am_estaciones
+        description: Catalogo de estaciones de Aerometro (batch)
+      - name: mr_viajes
+        description: Viajes completos de MetroRiel, JSON anidado (batch)
+      - name: tm_validaciones
+        description: Validaciones de Transmetro (streaming simulado)
+      - name: am_boardings
+        description: Boardings de Aerometro (streaming simulado)
+      - name: tu_transacciones
+        description: Transacciones de Transurbano (batch)
+      - name: cdc_padron_usuarios
+        description: Log de cambios INSERT/UPDATE/DELETE del padron (CDC)

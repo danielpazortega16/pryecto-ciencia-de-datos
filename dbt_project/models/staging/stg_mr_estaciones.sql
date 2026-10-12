@@ -3,4 +3,4 @@ select
     nombre_estacion,
     zona_nombre as zona_canonica,
     cast(km as double) as km
-from {{ bronze_parquet('mr_estaciones') }}
+from {{ ultima_carga('mr_estaciones') }}

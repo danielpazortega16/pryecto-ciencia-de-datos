@@ -18,4 +18,4 @@ select
         when tarjeta = 'SIN-TARJETA' then 'SIN_TARJETA'
         else 'DESCONOCIDO'
     end as operador_detectado
-from {{ bronze_parquet('cdc_padron_usuarios') }}
+from {{ ultima_carga('cdc_padron_usuarios') }}

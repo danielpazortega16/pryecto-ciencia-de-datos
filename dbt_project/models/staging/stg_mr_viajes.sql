@@ -10,4 +10,4 @@ select
     cast(fare_gtq as double) as monto_gtq,
     cast(duration_s as integer) as duracion_s,
     (exit is null) as sin_salida
-from {{ bronze_parquet('mr_viajes') }}
+from {{ ultima_carga('mr_viajes') }}

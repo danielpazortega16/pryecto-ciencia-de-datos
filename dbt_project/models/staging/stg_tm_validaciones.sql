@@ -7,4 +7,4 @@ select
     cast(tarifa as double) as monto_gtq,
     tipo,
     ts_ingesta
-from {{ bronze_parquet('tm_validaciones') }}
+from {{ ultima_carga('tm_validaciones') }}

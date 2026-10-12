@@ -1,5 +1,5 @@
 select
-    row_number() over (order by fecha, hora, num_tarjeta) as transaccion_id,  -- Transurbano no trae PK propia
+    row_number() over (order by fecha, hora, num_tarjeta, cod_parada, ruta, monto_centavos, cod_estado) as transaccion_id,  -- Transurbano no trae PK propia
     num_tarjeta as tarjeta_tu,
     nullif(cod_parada, '') as cod_parada,
     ruta,
@@ -12,4 +12,4 @@ select
         when 7 then 'SALDO_INSUF' when 9 then 'TARJETA_INVALIDA'
         else 'DESCONOCIDO'
     end as estado_desc
-from {{ bronze_parquet('tu_transacciones') }}
+from {{ ultima_carga('tu_transacciones') }}

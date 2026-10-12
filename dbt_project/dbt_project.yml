@@ -5,6 +5,11 @@ config-version: 2
 profile: 'red_metropolitana'
 
 model-paths: ["models"]
+macro-paths: ["macros"]
+
+on-run-start:
+  - "{{ crear_vistas_bronze() }}"
+
 seed-paths: ["seeds"]
 clean-targets: ["target", "dbt_packages"]
 
@@ -19,3 +24,6 @@ models:
     gold:
       +materialized: table
       +schema: gold
+    features:
+      +materialized: table
+      +schema: features
