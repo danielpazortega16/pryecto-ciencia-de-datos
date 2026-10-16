@@ -22,6 +22,7 @@ docs/decisiones.md.
 - `dbt_project/`: modelos de staging, silver y gold.
 - `warehouse.duckdb`: base de datos con staging/silver/gold. No se sube a git.
 - `orquestacion/flow_prefect.py`: corre todo el flujo con Prefect.
+- `tableau/`: el tablero (tablero_agencia.twbx) y los CSV que lee.
 - `docs/`: decisiones, métricas, DDL, matriz del bus, manual de usuario.
 
 ## Cómo correr el flujo completo
