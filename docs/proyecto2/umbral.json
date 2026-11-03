@@ -1,0 +1,37 @@
+{
+  "modelo": "HistGradientBoosting",
+  "formula": "G = 10 x VP - 5 x FP",
+  "umbral_teorico": 0.3333333333333333,
+  "elegido": {
+    "umbral": 0.325,
+    "contactados": 6320.0,
+    "vp": 2872.0,
+    "fp": 3448.0,
+    "fn": 4223.0,
+    "precision": 0.4544303797468354,
+    "recall": 0.40479210711768854,
+    "ganancia_q": 11480.0
+  },
+  "en_umbral_teorico": {
+    "umbral": 0.3333333333333333,
+    "contactados": 6009,
+    "vp": 2767,
+    "fp": 3242,
+    "fn": 4328,
+    "precision": 0.4604759527375603,
+    "recall": 0.3899929527836505,
+    "ganancia_q": 11460.0
+  },
+  "contactar_a_todos": {
+    "umbral": 0.0,
+    "contactados": 59491,
+    "vp": 7095,
+    "fp": 52396,
+    "fn": 0,
+    "precision": 0.1192617370694727,
+    "recall": 1.0,
+    "ganancia_q": -191030.0
+  },
+  "poblacion_a": 59491,
+  "positivos_a": 7095
+}

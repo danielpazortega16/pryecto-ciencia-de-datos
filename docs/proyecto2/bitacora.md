@@ -32,3 +32,16 @@ n_tarjetas daba exactamente lo mismo que n_operadores (cada persona tiene
 una sola tarjeta por operador) y la logística le repartía el mismo
 coeficiente a las dos. Se quitó y se volvió a correr todo lo anterior. No
 es una fuga, es una columna redundante.
+
+## 2026-11-03 - Ensembles y modelo para produccion
+
+`python -m ml.fase2_ensemble`. Mismos 5 folds del corte A. PR-AUC en
+validacion: logistica L2 0.415, HistGradientBoosting 0.426, Random Forest
+0.424. El boosting gana a la logistica en los 5 folds (de +0.007 a +0.016).
+Se elige HistGradientBoosting para produccion.
+
+## 2026-11-03 - Umbral
+
+`python -m ml.umbral --modelo "HistGradientBoosting"` sobre las predicciones
+fuera de fold del corte A. Umbral 0.325 (el teorico es 1/3). Ganancia en A:
+Q11,480 contactando a 6,320 personas.
