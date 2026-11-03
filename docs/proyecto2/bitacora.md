@@ -49,3 +49,27 @@ Q11,480 contactando a 6,320 personas.
 ## 2026-11-03 01:44:39 - Evaluacion unica en el corte B
 
 Commit 3a6bb7c0c33a3bc1349b2978e7dab77022a1f5ee. Modelo hgb entrenado con todo el corte A, umbral 0.325. PR-AUC en B 0.3862 (baseline tasa 0.1099, baseline dias sin viajar 0.3593). Ganancia Q7,550. No se ajusto nada despues de ver este resultado.
+
+## 2026-11-03 - Predicciones del corte C y aritmetica determinista
+
+`python predecir.py --datos datos_red --fecha-corte 2026-08-30`. Al repetirlo,
+2,759 puntajes cambiaban entre corridas: DuckDB suma en paralelo y la suma de
+tarifas decimales variaba en el ultimo decimal de maquina, lo que movia a
+algunas personas de intervalo en el boosting. Se corrigio sumando en
+centavos enteros. El modelo v1 no se reentreno y el corte B no se volvio a
+evaluar. Desde el cambio, tres corridas completas dan el mismo CSV. Corte C:
+57,701 personas, 7,872 a contactar.
+
+## 2026-11-03 - Ensayo de la prueba de invariancia
+
+`python -m ml.prueba_invariancia`. Corte B con los crudos recortados al 31 de
+julio contra los datos completos (30 dias mas): 58,113 filas, archivos
+identicos byte por byte. Las pruebas de recorte se repitieron con el codigo
+final: 0 diferencias en silver y en crudo.
+
+## 2026-11-03 - Segmentos
+
+`python -m ml.segmentos` y `python -m ml.segmentos --k 5`. Silueta maxima en
+k = 2 (0.302) pero solo separa a los viajeros intensivos; se eligio k = 5
+(segundo pico, 0.249, donde se aplana el codo). PCA: 45.9% de la varianza en
+dos componentes.

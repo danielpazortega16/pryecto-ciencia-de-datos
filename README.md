@@ -40,10 +40,27 @@ python -m ml.fase2_ensemble
 python -m ml.umbral --modelo "HistGradientBoosting"
 python -m ml.evaluar_test_b --modelo hgb
 python -m ml.segmentos --k 5
+python -m ml.prueba_invariancia
 ```
 
-La semilla es 42 en todo el proyecto (`ml/config.py`). Los informes están
-en `docs/proyecto2/` y la bitácora de corridas en
+`ml.evaluar_test_b` se niega a correr si ya existe
+`docs/proyecto2/test_b.json`: el corte B se evalúa una sola vez.
+`ml.prueba_invariancia` ensaya la prueba de la defensa con el corte B
+(predicciones con datos hasta el corte contra datos con 30 días más) y al
+final deja regeneradas las predicciones del corte C.
+
+Para comprobar que las predicciones del corte C no cambian con datos
+nuevos, apuntar `--datos` a la carpeta con los 30 días más y comparar con
+el archivo guardado:
+
+```bash
+python predecir.py --datos ruta/datos_nuevos --fecha-corte 2026-08-30 --salida predicciones/pred_nuevos.csv
+fc predicciones\predicciones_2026-08-30.csv predicciones\pred_nuevos.csv
+```
+
+Entregables de la Fase 2 en `docs/proyecto2/`: `informe_fase2.pdf`,
+`ficha_modelo.pdf` y `presentacion.pdf`. La semilla es 42 en todo el
+proyecto (`ml/config.py`). La bitácora de corridas está en
 `docs/proyecto2/bitacora.md`.
 
 ## Proyecto 1

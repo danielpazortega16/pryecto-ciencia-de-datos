@@ -24,14 +24,23 @@ img { max-width: 100%; }
 """
 
 
-def main(ruta_md):
+COMPACTO = """
+@page { size: Letter; margin: 1.3cm 1.6cm; }
+body { font-size: 8.8pt; line-height: 1.25; }
+h1 { font-size: 13pt; margin: 0 0 6px 0; }
+p, ul { margin: 4px 0; }
+table { font-size: 8.5pt; }
+"""
+
+
+def main(ruta_md, compacto=False):
     ruta_md = os.path.abspath(ruta_md)
     with open(ruta_md, encoding="utf-8") as f:
         cuerpo = markdown.markdown(f.read(), extensions=["tables", "fenced_code"])
     ruta_html = ruta_md[:-3] + ".html"
     ruta_pdf = ruta_md[:-3] + ".pdf"
     with open(ruta_html, "w", encoding="utf-8") as f:
-        f.write(f"<!doctype html><html lang='es'><head><meta charset='utf-8'><style>{ESTILO}</style></head><body>{cuerpo}</body></html>")
+        f.write(f"<!doctype html><html lang='es'><head><meta charset='utf-8'><style>{ESTILO}{COMPACTO if compacto else ''}</style></head><body>{cuerpo}</body></html>")
     perfil = os.path.join(os.environ.get("TEMP", "."), "chrome_pdf_informes")
     subprocess.run([CHROME, "--headless=new", "--disable-gpu", f"--user-data-dir={perfil}",
                     "--no-pdf-header-footer", f"--print-to-pdf={ruta_pdf}", "file:///" + ruta_html.replace("\\", "/")],
@@ -41,4 +50,4 @@ def main(ruta_md):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], compacto="--compacto" in sys.argv)

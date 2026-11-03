@@ -1,8 +1,8 @@
 etapa,segundos
 vaciar lake y warehouse,0.2
-ingesta a bronze,1.8
-"dbt run (staging, silver, gold)",38.1
-dbt test,16.4
-exportar csv del tablero,0.3
-"features cortes A, B y C",10.3
-total,67.1
+ingesta a bronze,1.3
+"dbt run (staging, silver, gold)",14.4
+dbt test,4.8
+exportar csv del tablero,0.1
+"features cortes A, B y C",3.8
+total,24.6

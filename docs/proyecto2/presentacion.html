@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Proyecto 2 - Quién deja de usar la red</title>
+<style>
+@page { size: 13.333in 7.5in; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Georgia, "Times New Roman", serif; color: #1c1c1c; }
+.s { width: 13.333in; height: 7.5in; padding: 0.55in 0.75in; page-break-after: always; position: relative; overflow: hidden; }
+.s:last-child { page-break-after: auto; }
+h1 { font-size: 34pt; font-weight: normal; margin: 1.6in 0 0.2in 0; }
+h2 { font-size: 24pt; font-weight: normal; margin: 0 0 0.25in 0; border-bottom: 1px solid #999; padding-bottom: 6px; }
+p, li { font-size: 15pt; line-height: 1.35; }
+ul { margin: 0.1in 0; padding-left: 0.35in; }
+li { margin-bottom: 6px; }
+.sub { font-size: 15pt; color: #555; }
+.pie { position: absolute; bottom: 0.3in; right: 0.75in; font-size: 10pt; color: #888; }
+table { border-collapse: collapse; font-size: 13pt; margin-top: 4px; }
+th, td { border: 1px solid #bbb; padding: 4px 10px; text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+th { background: #eee; font-weight: normal; }
+.dos { display: flex; gap: 0.4in; align-items: flex-start; }
+.dos > div { flex: 1; }
+img { max-width: 100%; max-height: 4.6in; }
+.mono { font-family: Consolas, monospace; font-size: 13pt; background: #f2f2f2; padding: 2px 6px; }
+.nota { font-size: 12.5pt; color: #444; }
+b.alto { font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="s">
+  <h1>¿Quién deja de usar la red?</h1>
+  <p class="sub">Proyecto 2 · Agencia Metropolitana de Transporte</p>
+  <p class="sub">Ciencia de Datos · Universidad Rafael Landívar · segundo semestre 2026</p>
+  <p class="sub">Daniel Paz (1200022) · Jonathan García (1045222)</p>
+  <p class="nota" style="margin-top:0.8in">Los datos son simulados: no corresponden a ningún operador ni usuario real.</p>
+</div>
+
+<div class="s">
+  <h2>La pregunta</h2>
+  <ul>
+    <li>Con lo que sabemos de una persona hasta hoy, ¿qué tan probable es que deje de usar la red en los próximos 30 días?</li>
+    <li>Con esa probabilidad, ¿a quién conviene contactar si la campaña no alcanza para todos?</li>
+    <li>Clasificación binaria por persona y fecha de corte. Corte t = 00:00 hora local.</li>
+    <li>Features: lo que pasó en los 28 días antes de t. Etiqueta: si viajó o no en los 30 días desde t.</li>
+    <li>Tres cortes con el mismo código: <b>A</b> (1 jul) para entrenar y ajustar, <b>B</b> (31 jul) como test único, <b>C</b> (30 ago) para entregar.</li>
+  </ul>
+  <div class="pie">2</div>
+</div>
+
+<div class="s">
+  <h2>Datos nuevos desde cero, con un solo comando</h2>
+  <p><span class="mono">python orquestacion/flow_prefect.py --desde-cero</span></p>
+  <div class="dos">
+    <div>
+      <ul>
+        <li>Vacía el lake, el warehouse y los artefactos de dbt, y carga el pipeline del Proyecto 1 sin reestructurarlo.</li>
+        <li>Los 9 archivos llegan a Bronze con exactamente las filas del LEEME: diferencia 0 en los nueve.</li>
+        <li>Agregamos a Silver un solo modelo: todo el CDC con la llave de la persona.</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <tr><th>Archivo</th><th>Esperadas</th><th>Cargadas</th></tr>
+        <tr><td>transurbano_transacciones</td><td>1,635,788</td><td>1,635,788</td></tr>
+        <tr><td>transmetro_validaciones</td><td>713,786</td><td>713,786</td></tr>
+        <tr><td>metroriel_viajes</td><td>590,844</td><td>590,844</td></tr>
+        <tr><td>aerometro_boardings</td><td>387,053</td><td>387,053</td></tr>
+        <tr><td>cdc_padron_usuarios</td><td>77,636</td><td>77,636</td></tr>
+        <tr><td>4 catálogos</td><td>468</td><td>468</td></tr>
+      </table>
+      <p class="nota">Carga completa: entre 25 y 67 segundos según la máquina.</p>
+    </div>
+  </div>
+  <div class="pie">3</div>
+</div>
+
+<div class="s">
+  <h2>Unidad, población y etiqueta</h2>
+  <div class="dos">
+    <div>
+      <ul>
+        <li><b>Unidad: la persona.</b> El número dentro de la tarjeta enlaza Transmetro, Transurbano y MetroRiel (supuesto del Proyecto 1). Aerómetro queda aparte.</li>
+        <li><b>Población:</b> ≥ 2 abordajes válidos en los 28 días previos y sin DELETE vigente en el CDC.</li>
+        <li><b>Etiqueta 1:</b> ningún abordaje válido, en ningún operador, en los 30 días desde el corte.</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <tr><th>Corte</th><th>Población</th><th>Positivos</th><th>Tasa</th></tr>
+        <tr><td>A · 1 jul</td><td>59,491</td><td>7,095</td><td>0.1193</td></tr>
+        <tr><td>B · 31 jul</td><td>58,113</td><td>6,387</td><td>0.1099</td></tr>
+        <tr><td>C · 30 ago</td><td>57,701</td><td colspan="2">etiqueta oculta</td></tr>
+      </table>
+      <p class="nota" style="margin-top:0.25in"><b>Costo de la unidad.</b> Con la tarjeta, 2,404 de 10,812 positivos (0.22) serían personas que siguieron viajando con otra tarjeta. Con la persona, 1,460 de 7,095 positivos (0.21) son solo de Aerómetro y no se pueden verificar.</p>
+    </div>
+  </div>
+  <div class="pie">4</div>
+</div>
+
+<div class="s">
+  <h2>Features y auditoría de fuga</h2>
+  <ul>
+    <li>19 features con ventana de 28 días, iguales en los tres cortes: recencia, frecuencia, tendencia, mezcla de operadores, horario, gasto y perfil del padrón.</li>
+    <li>Salen solo de Silver: lo que está en cuarentena no entra.</li>
+    <li><b>Prueba de recorte</b> del corte A, datos completos contra datos recortados al 30 de junio:
+      <ul>
+        <li>Recortando Silver: 59,491 filas, <b>0 diferencias</b>.</li>
+        <li>Recortando los archivos crudos y corriendo todo el pipeline en una copia aislada: <b>0 diferencias</b>.</li>
+      </ul>
+    </li>
+    <li><b>Invariancia ensayada</b> con el corte B: predicciones con los datos hasta el 31 de julio contra datos con 30 días más, archivos idénticos byte por byte.</li>
+  </ul>
+  <div class="pie">5</div>
+</div>
+
+<div class="s">
+  <h2>Modelos: mismos 5 folds del corte A, métrica PR-AUC</h2>
+  <div class="dos">
+    <div style="flex:1.35">
+      <table>
+        <tr><th>Modelo</th><th>Entren.</th><th>Validación</th></tr>
+        <tr><td>Baseline: tasa del corte A</td><td>0.119</td><td>0.119 ± 0.000</td></tr>
+        <tr><td>Baseline: días desde el último viaje</td><td>0.402</td><td>0.403 ± 0.014</td></tr>
+        <tr><td>Baseline: menos viajes en 28 días</td><td>0.254</td><td>0.254 ± 0.004</td></tr>
+        <tr><td>Logística L2, λ = 100</td><td>0.416</td><td>0.415 ± 0.016</td></tr>
+        <tr><td>Logística L1, λ = 10</td><td>0.415</td><td>0.414 ± 0.016</td></tr>
+        <tr><td>Logística Elastic Net, λ = 10</td><td>0.415</td><td>0.415 ± 0.016</td></tr>
+        <tr><td><b>HistGradientBoosting</b></td><td>0.544</td><td><b>0.426 ± 0.015</b></td></tr>
+        <tr><td>Random Forest</td><td>0.533</td><td>0.424 ± 0.014</td></tr>
+      </table>
+    </div>
+    <div>
+      <p class="nota"><b>¿Por qué PR-AUC?</b> Solo el 12% abandona y la Agencia contacta a los de arriba de la lista. La PR-AUC mide qué tan arriba quedan los que se van y no se infla con miles de negativos fáciles. Su piso es la tasa: 0.119.</p>
+      <p class="nota"><b>Lectura:</b> la recencia sola ya da 0.403. La logística apenas le gana; el boosting gana en los 5 folds.</p>
+    </div>
+  </div>
+  <div class="pie">6</div>
+</div>
+
+<div class="s">
+  <h2>Logística: λ y coeficientes</h2>
+  <div class="dos">
+    <div><img src="logistica_pr_auc_vs_lambda.png" alt="PR-AUC contra lambda"></div>
+    <div>
+      <p class="nota">Los que más empujan hacia el abandono (variables escaladas):</p>
+      <table>
+        <tr><th>Feature</th><th>Coef.</th></tr>
+        <tr><td>días desde el último viaje</td><td>+0.76</td></tr>
+        <tr><td>viajes en 28 días (con los recientes fijos = caída)</td><td>+0.33</td></tr>
+        <tr><td>perfil general</td><td>+0.23</td></tr>
+        <tr><td>perfil estudiante</td><td>+0.10</td></tr>
+        <tr><td>viajes en 14 días</td><td>+0.09</td></tr>
+      </table>
+      <p class="nota">Protegen: días activos (−0.63) y viajes en la última semana (−0.52).</p>
+    </div>
+  </div>
+  <div class="pie">7</div>
+</div>
+
+<div class="s">
+  <h2>Sesgo-varianza y modelo para producción</h2>
+  <div class="dos">
+    <div>
+      <ul>
+        <li><b>Baselines y logística:</b> sesgo alto. Entrenamiento ≈ validación; la frontera lineal no capta más.</li>
+        <li><b>Boosting y Random Forest:</b> varianza moderada (brecha 0.11 a 0.12), pero la mejor validación.</li>
+        <li><b>Decisión: boosting.</b> Gana en los 5 folds (+0.007 a +0.016) y deja Q11,480 contra Q11,015. Entrena en 2 s y se guarda en un archivo.</li>
+      </ul>
+    </div>
+    <div>
+      <p class="nota">Importancia por permutación, en validación:</p>
+      <table>
+        <tr><th>Feature</th><th>Caída de PR-AUC</th></tr>
+        <tr><td>días desde el último viaje</td><td>0.246</td></tr>
+        <tr><td>perfil</td><td>0.015</td></tr>
+        <tr><td>tendencia 14 días</td><td>0.010</td></tr>
+        <tr><td>viajes en 14 días</td><td>0.009</td></tr>
+        <tr><td>viajes en 7 días</td><td>0.008</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="pie">8</div>
+</div>
+
+<div class="s">
+  <h2>Umbral según el costo</h2>
+  <div class="dos">
+    <div>
+      <p>Contactar cuesta Q5; la campaña retiene al 25% de quienes se iban; un retenido vale Q60.</p>
+      <ul>
+        <li>Acertar: 0.25 × 60 − 5 = <b>+Q10</b></li>
+        <li>Contactar a quien no se iba: <b>−Q5</b></li>
+        <li><b>G = 10 × VP − 5 × FP</b></li>
+        <li>Teoría: contactar si p &gt; 5/15 = 1/3</li>
+        <li>Elegido en A (fuera de fold): <b>0.325</b>, con 6,320 contactos y <b>Q11,480</b></li>
+        <li>Contactar a todos: −Q191,030</li>
+      </ul>
+    </div>
+    <div><img src="curva_ganancia.png" alt="Ganancia contra umbral"></div>
+  </div>
+  <div class="pie">9</div>
+</div>
+
+<div class="s">
+  <h2>Test único en el corte B</h2>
+  <div class="dos">
+    <div>
+      <p class="nota">3 de noviembre de 2026, commit 3a6bb7c. El script se niega a correr dos veces.</p>
+      <table>
+        <tr><th></th><th>Validación A</th><th>Test B</th></tr>
+        <tr><td>PR-AUC boosting</td><td>0.426</td><td><b>0.386</b></td></tr>
+        <tr><td>Baseline recencia</td><td>0.403</td><td>0.359</td></tr>
+        <tr><td>Baseline tasa</td><td>0.119</td><td>0.110</td></tr>
+        <tr><td>ROC-AUC</td><td>0.841</td><td>0.839</td></tr>
+        <tr><td>Ganancia</td><td>Q11,480</td><td><b>Q7,550</b></td></tr>
+      </table>
+      <p class="nota">Matriz en B: VP 2,746 · FP 3,982 · FN 3,641 · VN 47,744.</p>
+    </div>
+    <div>
+      <p><b>¿Por qué baja?</b> En B abandona menos gente (11.0% contra 11.9%). La PR-AUC y la ganancia dependen de esa tasa.</p>
+      <p>El orden se mantiene: la ROC-AUC casi no cambia y el modelo le gana a la recencia por más en B (+0.027) que en validación (+0.023).</p>
+      <p>No ajustamos nada después de verlo.</p>
+    </div>
+  </div>
+  <div class="pie">10</div>
+</div>
+
+<div class="s">
+  <h2>Segmentos: KMeans (k = 5) y PCA</h2>
+  <div class="dos">
+    <div style="flex:0.9"><img src="segmentos_pca.png" alt="Segmentos en PCA" style="max-height:4.3in"></div>
+    <div style="flex:1.1">
+      <table>
+        <tr><th>Segmento</th><th>Personas</th><th>Abandono</th></tr>
+        <tr><td>Viajeros intensivos</td><td>5,461</td><td>0.019</td></tr>
+        <tr><td>Usuarios de MetroRiel</td><td>10,082</td><td>0.125</td></tr>
+        <tr><td>Usuarios de Aerómetro</td><td>10,028</td><td>0.145</td></tr>
+        <tr><td>Usuarios de Transurbano</td><td>25,482</td><td>0.118</td></tr>
+        <tr><td>Usuarios de Transmetro</td><td>8,438</td><td>0.149</td></tr>
+      </table>
+      <p class="nota">k = 5: segundo pico de silueta (0.249) donde se aplana el codo; k = 2 solo separaba a los intensivos. PCA: 45.9% de la varianza.</p>
+      <p class="nota"><b>Acciones:</b> Transmetro, recarga condicionada a volver a viajar. Aerómetro, transbordo sin costo a otro modo. MetroRiel, pase semanal. Intensivos, no gastar en ellos. La tasa es descriptiva, no causal.</p>
+    </div>
+  </div>
+  <div class="pie">11</div>
+</div>
+
+<div class="s">
+  <h2>Producción</h2>
+  <ul>
+    <li><span class="mono">python predecir.py --datos datos_red --fecha-corte 2026-08-30</span> carga los datos, calcula las features, carga <span class="mono">modelos/modelo_abandono_v1.joblib</span> y no reentrena.</li>
+    <li>Corte C: <b>57,701 personas, 7,872 a contactar</b>, en <span class="mono">predicciones/predicciones_2026-08-30.csv</span>.</li>
+    <li>Versiones fijas en requirements.txt, semilla 42, ficha del modelo de una página.</li>
+    <li><b>Lo que encontramos al ensayar la invariancia:</b> dos corridas iguales daban 2,759 puntajes distintos. DuckDB suma en paralelo y las tarifas decimales cambiaban en el último decimal; el boosting lo convertía en otro intervalo. Lo corregimos sumando en centavos enteros, sin reentrenar ni volver a tocar B. Ahora tres corridas dan el mismo archivo.</li>
+  </ul>
+  <div class="pie">12</div>
+</div>
+
+<div class="s">
+  <h2>Limitaciones y conclusión</h2>
+  <ul>
+    <li>El vínculo entre tarjetas es un supuesto, y Aerómetro no se puede enlazar.</li>
+    <li>Casi toda la señal está en la recencia: el modelo mejora, pero poco, sobre "días sin viajar".</li>
+    <li>Entrenado con un solo mes: no vio estacionalidad ni cambios de tarifa.</li>
+    <li>El 25% de retención es un supuesto del escenario, no algo medido.</li>
+    <li><b>Conclusión:</b> con el umbral de costo, contactar a ~7,900 personas en el corte C deja una ganancia positiva en lugar de la pérdida de contactar a todos, y la Agencia puede priorizar Transmetro y Aerómetro.</li>
+  </ul>
+  <div class="pie">13</div>
+</div>
+
+</body>
+</html>
