@@ -1,0 +1,10 @@
+{
+  "tasa_corte_a": 0.1192617370694727,
+  "lambdas_elegidos": {
+    "L2": 100.0,
+    "L1": 10.0,
+    "Elastic Net (l1_ratio=0.5)": 10.0
+  },
+  "mejor_logistica": "Logistica L2, lambda=100",
+  "segundos": 539.9
+}

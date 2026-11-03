@@ -1,0 +1,30 @@
+{
+  "A": {
+    "tarjeta_como_unidad": {
+      "poblacion_tarjetas": 76774,
+      "positivos_tarjeta": 10812,
+      "positivos_de_personas_que_siguieron": 2404,
+      "proporcion": 0.2223
+    },
+    "aerometro": {
+      "unidades_solo_aerometro": 10429,
+      "de_la_poblacion": 59491,
+      "positivos_solo_aerometro": 1460,
+      "positivos_totales": 7095
+    }
+  },
+  "B": {
+    "tarjeta_como_unidad": {
+      "poblacion_tarjetas": 75851,
+      "positivos_tarjeta": 10004,
+      "positivos_de_personas_que_siguieron": 2400,
+      "proporcion": 0.2399
+    },
+    "aerometro": {
+      "unidades_solo_aerometro": 10284,
+      "de_la_poblacion": 58113,
+      "positivos_solo_aerometro": 1360,
+      "positivos_totales": 6387
+    }
+  }
+}
