@@ -1,0 +1,10 @@
+archivo,fuente_bronze,filas_esperadas
+aerometro_boardings.csv,am_boardings,387053
+am_estaciones.csv,am_estaciones,14
+cdc_padron_usuarios.csv,cdc_padron_usuarios,77636
+metroriel_viajes.jsonl,mr_viajes,590844
+mr_estaciones.csv,mr_estaciones,22
+tm_estaciones.csv,tm_estaciones,104
+transmetro_validaciones.csv,tm_validaciones,713786
+transurbano_transacciones.csv,tu_transacciones,1635788
+tu_paradas.csv,tu_paradas,328

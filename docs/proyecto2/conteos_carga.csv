@@ -1,0 +1,10 @@
+archivo,filas_esperadas,filas_cargadas,diferencia
+aerometro_boardings.csv,387053,387053,0
+am_estaciones.csv,14,14,0
+cdc_padron_usuarios.csv,77636,77636,0
+metroriel_viajes.jsonl,590844,590844,0
+mr_estaciones.csv,22,22,0
+tm_estaciones.csv,104,104,0
+transmetro_validaciones.csv,713786,713786,0
+transurbano_transacciones.csv,1635788,1635788,0
+tu_paradas.csv,328,328,0
