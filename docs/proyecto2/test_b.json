@@ -1,0 +1,24 @@
+{
+  "fecha": "2026-11-03 01:44:39",
+  "commit": "3a6bb7c0c33a3bc1349b2978e7dab77022a1f5ee",
+  "modelo": "hgb",
+  "archivo_modelo": "modelos/modelo_abandono_v1.joblib",
+  "umbral": 0.325,
+  "poblacion_b": 58113,
+  "positivos_b": 6387,
+  "pr_auc_b": 0.3862042482693896,
+  "roc_auc_b": 0.8388275829073962,
+  "baseline_tasa_pr_auc_b": 0.10990656135460224,
+  "baseline_dias_sin_viajar_pr_auc_b": 0.35929542978729606,
+  "matriz_confusion": {
+    "vp": 2746,
+    "fp": 3982,
+    "fn": 3641,
+    "vn": 47744
+  },
+  "precision": 0.40814506539833534,
+  "recall": 0.4299358071081885,
+  "contactados": 6728,
+  "ganancia_q": 7550.0,
+  "segundos_entrenamiento": 2.2
+}

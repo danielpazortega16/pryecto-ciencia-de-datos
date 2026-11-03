@@ -45,3 +45,7 @@ Se elige HistGradientBoosting para produccion.
 `python -m ml.umbral --modelo "HistGradientBoosting"` sobre las predicciones
 fuera de fold del corte A. Umbral 0.325 (el teorico es 1/3). Ganancia en A:
 Q11,480 contactando a 6,320 personas.
+
+## 2026-11-03 01:44:39 - Evaluacion unica en el corte B
+
+Commit 3a6bb7c0c33a3bc1349b2978e7dab77022a1f5ee. Modelo hgb entrenado con todo el corte A, umbral 0.325. PR-AUC en B 0.3862 (baseline tasa 0.1099, baseline dias sin viajar 0.3593). Ganancia Q7,550. No se ajusto nada despues de ver este resultado.
