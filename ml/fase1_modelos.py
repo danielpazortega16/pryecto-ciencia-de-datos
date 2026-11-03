@@ -76,18 +76,7 @@ def main():
     pd.DataFrame({"unidad_id": df["unidad_id"], "fold": fold, "etiqueta": df["etiqueta"], **oofs}).to_parquet(
         os.path.join(SALIDAS, "oof_fase1.parquet"), index=False)
 
-    fig, ax = plt.subplots(figsize=(7, 4.2))
-    for nombre, c in curvas.groupby("castigo"):
-        ax.errorbar(c["lambda"], c["pr_auc_media"], yerr=c["pr_auc_std"], marker="o", ms=3, capsize=2, label=nombre)
-        ax.axvline(mejores[nombre], ls=":", lw=1, color=ax.lines[-1].get_color())
-    ax.axhline(tasa, color="grey", ls="--", lw=1, label=f"Baseline tasa del corte A ({tasa:.3f})")
-    ax.set_xscale("log")
-    ax.set_xlabel("lambda (castigo de regularizacion, C = 1/lambda)")
-    ax.set_ylabel("PR-AUC en validacion (media de 5 folds)")
-    ax.set_title("Regresion logistica: PR-AUC contra lambda")
-    ax.legend(fontsize=8)
-    fig.tight_layout()
-    fig.savefig(os.path.join(DOCS_P2, "logistica_pr_auc_vs_lambda.png"), dpi=130)
+    graficar(curvas, mejores, tasa)
 
     # Coeficientes del mejor castigo, ajustado con todo el corte A (solo para
     # interpretar; la evaluacion ya se hizo por validacion cruzada).
@@ -108,10 +97,33 @@ def main():
     print(resumen_json)
 
 
+def graficar(curvas, mejores, tasa):
+    fig, ax = plt.subplots(figsize=(7, 4.2))
+    for nombre, c in curvas.groupby("castigo"):
+        linea = ax.errorbar(c["lambda"], c["pr_auc_media"], yerr=c["pr_auc_std"], marker="o", ms=3,
+                            capsize=2, label=f"{nombre} (elegido lambda={mejores[nombre]:.3g})")
+        ax.axvline(mejores[nombre], ls=":", lw=1, color=linea[0].get_color())
+    ax.set_xscale("log")
+    ax.set_xlabel("lambda (castigo de regularizacion, C = 1/lambda)")
+    ax.set_ylabel("PR-AUC en validacion (media y desv. de 5 folds)")
+    ax.set_title(f"Logistica: PR-AUC contra lambda (baseline tasa del corte A = {tasa:.3f}, fuera del eje)")
+    ax.title.set_fontsize(9)
+    ax.legend(fontsize=8, loc="lower left")
+    fig.tight_layout()
+    fig.savefig(os.path.join(DOCS_P2, "logistica_pr_auc_vs_lambda.png"), dpi=130)
+
+
 def cargar_columnas():
     from ml.features import COLUMNAS_FEATURES
     return COLUMNAS_FEATURES
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--solo-grafica" in sys.argv:
+        c = pd.read_csv(os.path.join(DOCS_P2, "logistica_curva_lambda.csv"))
+        with open(os.path.join(DOCS_P2, "fase1_resumen.json"), encoding="utf-8") as f:
+            r = json.load(f)
+        graficar(c, r["lambdas_elegidos"], r["tasa_corte_a"])
+    else:
+        main()

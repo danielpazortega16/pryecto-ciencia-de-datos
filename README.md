@@ -1,4 +1,52 @@
-# Agencia Metropolitana de Transporte — Proyecto 1
+# Agencia Metropolitana de Transporte
+
+Proyecto 1: plataforma de datos de la red (más abajo). Proyecto 2: ¿quién
+deja de usar la red? Un modelo que estima la probabilidad de que una
+persona deje de viajar en los próximos 30 días y decide a quién contactar.
+El estado final del Proyecto 1 quedó en la etiqueta `proyecto-1`.
+
+## Proyecto 2: cómo correrlo
+
+Requisitos: Python 3.13 y las versiones fijas de `requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
+
+Comando único desde un entorno vacío. Vacía el lake (`bronze/`), el
+warehouse y los artefactos de dbt, carga `datos_red/` y deja las features
+de los cortes A, B y C:
+
+```bash
+python orquestacion/flow_prefect.py --desde-cero
+```
+
+Predicciones para una fecha de corte, con el modelo guardado en
+`modelos/` (no reentrena):
+
+```bash
+python predecir.py --datos datos_red --fecha-corte 2026-08-30
+```
+
+El resto de pasos, en el orden en que se corrieron (cada uno deja sus
+salidas en `docs/proyecto2/`):
+
+```bash
+python -m ml.prueba_recorte --nivel silver
+python -m ml.prueba_recorte --nivel crudo
+python -m ml.costo_unidad
+python -m ml.fase1_modelos
+python -m ml.fase2_ensemble
+python -m ml.umbral --modelo "HistGradientBoosting"
+python -m ml.evaluar_test_b --modelo hgb
+python -m ml.segmentos --k 5
+```
+
+La semilla es 42 en todo el proyecto (`ml/config.py`). Los informes están
+en `docs/proyecto2/` y la bitácora de corridas en
+`docs/proyecto2/bitacora.md`.
+
+## Proyecto 1
 
 Pipeline Bronze/Silver/Gold para integrar los cuatro operadores de
 transporte de la ciudad (Transmetro, Transurbano, MetroRiel, Aerómetro),

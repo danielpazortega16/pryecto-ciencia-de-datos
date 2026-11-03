@@ -1,0 +1,10 @@
+duckdb==1.5.5
+dbt-core==1.12.5
+dbt-duckdb==1.11.0
+prefect==3.8.6
+pandas==2.3.3
+numpy==2.3.4
+pyarrow==22.0.0
+scikit-learn==1.8.0
+matplotlib==3.10.7
+joblib==1.5.3

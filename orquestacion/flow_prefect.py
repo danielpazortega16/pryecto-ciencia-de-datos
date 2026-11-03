@@ -113,7 +113,7 @@ def _escribir_reportes(conteos, tiempos):
 
 
 @flow(name="red-metropolitana-pipeline")
-def pipeline_completo(desde_cero: bool = False, con_features: bool = True):
+def pipeline_completo(desde_cero: bool = False, con_features: bool = True, reportes: bool = True):
     tiempos = {}
 
     def medir(nombre, fn):
@@ -132,7 +132,7 @@ def pipeline_completo(desde_cero: bool = False, con_features: bool = True):
         medir("features cortes A, B y C", features_cortes)
     tiempos["total"] = sum(tiempos.values())
 
-    if desde_cero:
+    if desde_cero and reportes:
         _escribir_reportes(conteos, tiempos)
     print(f"Conteos Bronze: {conteos}")
     print(f"dbt test paso: {tests_ok}")

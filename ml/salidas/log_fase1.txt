@@ -1,0 +1,17 @@
+                                         modelo  pr_auc_val_media  pr_auc_val_std  pr_auc_train_media  roc_auc_val_media  roc_auc_val_std
+                     Baseline: tasa del corte A          0.119262        0.000004            0.119262           0.500000         0.000000
+           Baseline: dias desde el ultimo viaje          0.403059        0.013635            0.402447           0.825984         0.003897
+              Baseline: menos viajes en 28 dias          0.254098        0.004206            0.254004           0.742556         0.005614
+                       Logistica L2, lambda=100          0.415264        0.015958            0.415503           0.831403         0.004704
+                        Logistica L1, lambda=10          0.414482        0.015801            0.414943           0.831436         0.004884
+Logistica Elastic Net (l1_ratio=0.5), lambda=10          0.414523        0.015758            0.414972           0.831445         0.004885
+                     feature  coeficiente
+num__dias_desde_ultimo_viaje     0.764118
+             num__viajes_28d     0.332178
+         cat__perfil_general     0.227058
+      cat__perfil_estudiante     0.100468
+             num__viajes_14d     0.085599
+         num__prop_aerometro     0.079342
+    num__max_dias_sin_viajar     0.062534
+      cat__perfil_trabajador     0.056170
+{'tasa_corte_a': np.float64(0.1192617370694727), 'lambdas_elegidos': {'L2': 100.0, 'L1': 10.0, 'Elastic Net (l1_ratio=0.5)': 10.0}, 'mejor_logistica': 'Logistica L2, lambda=100', 'segundos': 554.6}
