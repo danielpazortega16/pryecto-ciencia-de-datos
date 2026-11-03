@@ -128,8 +128,9 @@ def construir(con, corte: date, con_etiqueta: bool = True) -> pd.DataFrame:
             avg(case when operador = 'AEROMETRO' then 1.0 else 0.0 end) as prop_aerometro,
             avg(case when extract(hour from fecha_hora) in (5, 6, 7, 8, 16, 17, 18, 19) then 1.0 else 0.0 end) as prop_hora_pico,
             avg(case when dayofweek(fecha_hora) in (0, 6) then 1.0 else 0.0 end) as prop_fin_de_semana,
-            sum(monto_gtq) as gasto_28d,
-            avg(monto_gtq) as tarifa_promedio
+            -- en centavos enteros: la suma de enteros es exacta y no depende
+            -- del orden en que DuckDB agrega en paralelo
+            sum(cast(round(monto_gtq * 100) as bigint)) as gasto_centavos
         from ventana
         group by 1
     ),
@@ -161,7 +162,9 @@ def construir(con, corte: date, con_etiqueta: bool = True) -> pd.DataFrame:
         a.viajes_28d * 1.0 / a.dias_activos_28d as viajes_por_dia_activo,
         a.n_operadores, a.n_zonas,
         a.prop_transmetro, a.prop_transurbano, a.prop_metroriel, a.prop_aerometro,
-        a.prop_hora_pico, a.prop_fin_de_semana, a.gasto_28d, a.tarifa_promedio,
+        a.prop_hora_pico, a.prop_fin_de_semana,
+        a.gasto_centavos / 100.0 as gasto_28d,
+        a.gasto_centavos / 100.0 / a.viajes_28d as tarifa_promedio,
         coalesce(pv.perfil, 'sin_padron') as perfil,
         {"case when f.unidad_id is null then 1 else 0 end" if con_etiqueta else "cast(null as integer)"} as etiqueta
     from agg a

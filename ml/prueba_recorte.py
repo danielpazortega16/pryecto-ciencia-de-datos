@@ -51,7 +51,7 @@ def features_recorte_silver():
         con.close()
 
 
-def _recortar_crudos(origen, destino):
+def recortar_crudos(origen, destino, limite=LIMITE):
     os.makedirs(destino, exist_ok=True)
     for nombre in os.listdir(origen):
         src = os.path.join(origen, nombre)
@@ -65,9 +65,9 @@ def _recortar_crudos(origen, destino):
                     reg = json.loads(linea)
                     entrada = datetime.fromisoformat(reg["entry"]["ts"])
                     salida = reg["exit"]["ts"] if reg["exit"] else None
-                    # A las 00:00 del 1 de julio un viaje solo existe en el
-                    # archivo si ya se cerro (o quedo sin salida antes del corte).
-                    if entrada < LIMITE and (salida is None or datetime.fromisoformat(salida) < LIMITE):
+                    # A las 00:00 del corte un viaje solo existe en el archivo si ya
+                    # se cerro (o quedo sin salida antes del corte).
+                    if entrada < limite and (salida is None or datetime.fromisoformat(salida) < limite):
                         fo.write(linea)
             continue
         with open(src, newline="", encoding="utf-8") as fi, open(dst, "w", newline="", encoding="utf-8") as fo:
@@ -87,7 +87,7 @@ def _recortar_crudos(origen, destino):
                     ts = datetime.fromisoformat(fila[idx["commit_ts"]])
                 else:
                     raise ValueError(f"Archivo no esperado: {nombre}")
-                if ts < LIMITE:
+                if ts < limite:
                     w.writerow(fila)
 
 
@@ -101,7 +101,7 @@ def features_recorte_crudo():
         destino = os.path.join(copia, rel)
         os.makedirs(os.path.dirname(destino), exist_ok=True)
         shutil.copy(os.path.join(BASE_DIR, rel), destino)
-    _recortar_crudos(os.path.join(BASE_DIR, "datos_red"), os.path.join(copia, "datos_red"))
+    recortar_crudos(os.path.join(BASE_DIR, "datos_red"), os.path.join(copia, "datos_red"))
     os.makedirs(os.path.join(copia, "tableau"), exist_ok=True)
     os.makedirs(os.path.join(copia, "docs", "proyecto2"), exist_ok=True)
 
