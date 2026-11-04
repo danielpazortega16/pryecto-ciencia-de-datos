@@ -2,31 +2,30 @@
 
 ## Introducción
 
-En este proyecto queremos estimar qué personas van a dejar de usar la red
-de transporte en los próximos 30 días, para que la Agencia pueda decidir a
-quién contactar en una campaña de retención. Usamos el mismo pipeline del
-Proyecto 1 para cargar los datos y sobre eso armamos la etiqueta, las
-features y los primeros modelos.
+Cada mes una parte de los usuarios deja de viajar en la red y la mayoría no
+avisa. La Agencia quiere hacer una campaña de retención, pero el presupuesto
+no alcanza para todos, entonces necesita saber a quién contactar. En esta
+fase cargamos los datos nuevos con el pipeline del Proyecto 1, definimos la
+etiqueta, armamos las features y probamos los primeros modelos.
 
-Los datos son simulados y no corresponden a ningún operador ni usuario
-real.
+Los datos son simulados y no corresponden a ningún operador ni usuario real.
 
-## Datos nuevos desde cero
+## 1.1 Datos nuevos desde cero
 
-Para cargar todo desde un entorno vacío se corre un solo comando:
+Para cargar todo desde un entorno vacío corrimos este comando, que también
+está en el README:
 
 ```
 python orquestacion/flow_prefect.py --desde-cero
 ```
 
-Este comando borra el lake, el warehouse y lo que dbt genera, carga los
-nueve archivos de la carpeta datos_red, corre staging, silver y gold con
-sus pruebas y al final calcula las features de los tres cortes. No hay
-pasos manuales. dbt crea sus vistas de Bronze al arrancar y no usamos
-seeds ni tablas incrementales, así que Silver y Gold se recalculan
-completos cada vez.
+Primero borra el lake, el warehouse y lo que genera dbt. Después carga los
+nueve archivos de datos_red, corre staging, silver y gold con sus pruebas y
+calcula las features de los tres cortes. No hay que hacer nada a mano, porque
+dbt crea sus vistas de Bronze al arrancar y no usamos seeds, snapshots ni
+tablas incrementales.
 
-| Archivo | Filas esperadas | Filas en Bronze | Diferencia |
+| Archivo | Filas esperadas | Filas cargadas | Diferencia |
 |---|---:|---:|---:|
 | aerometro_boardings.csv | 387,053 | 387,053 | 0 |
 | am_estaciones.csv | 14 | 14 | 0 |
@@ -38,12 +37,11 @@ completos cada vez.
 | transurbano_transacciones.csv | 1,635,788 | 1,635,788 | 0 |
 | tu_paradas.csv | 328 | 328 | 0 |
 
-Los nueve archivos llegaron completos a Bronze, así que no hubo
-diferencias que explicar. La limpieza de duplicados, nulos, fechas futuras
-y viajes sin salida pasa después, en Silver, y lo que se rechaza queda en
-cuarentena.
+Los nueve archivos cuadraron con la tabla de conteos esperados. Los
+duplicados, nulos, fechas futuras y viajes sin salida se limpian después en
+Silver, y lo que se rechaza queda en cuarentena.
 
-Estos son los tiempos de una corrida desde cero en nuestra máquina:
+Estos fueron los tiempos de la primera corrida:
 
 | Etapa | Segundos |
 |---|---:|
@@ -55,110 +53,113 @@ Estos son los tiempos de una corrida desde cero en nuestra máquina:
 | Features de los cortes A, B y C | 10.3 |
 | Total | 67.1 |
 
-## Etiqueta, población y unidad
+En una corrida posterior el total bajó a 24.6 segundos. El archivo
+docs/proyecto2/tiempos_carga.csv guarda siempre la última corrida.
+
+## 1.2 Etiqueta, población y unidad
 
 ### Etiqueta
 
-Una persona tiene etiqueta 1 si no tiene ningún abordaje válido
-en ningún operador desde las 00:00 del día de corte hasta 30 días después.
-Si tiene al menos uno, su etiqueta es 0.
+Una unidad tiene etiqueta 1 si no tiene ningún abordaje válido, en ningún
+operador, en los 30 días que empiezan a las 00:00 del corte, y 0 si tiene al
+menos uno.
 
 ### Unidad
 
-En el Proyecto 1 dejamos dos niveles de identidad: la tarjeta de
-cada operador y la persona, con el supuesto de que el número dentro de la
-tarjeta es el mismo para Transmetro, Transurbano y MetroRiel. Por ejemplo
-TC-00013132, 0000013132 y MR0013132 serían la misma persona. Si usáramos la
-tarjeta como unidad, alguien que deja Transmetro pero sigue viajando en
-Transurbano contaría como abandono, y a esa persona no hace falta
-contactarla. Por eso trabajamos con la persona. Aerómetro entrega un hash
-que no se puede enlazar con nada, así que cada tarjeta de Aerómetro cuenta
+Elegimos la persona. En el Proyecto 1 dejamos dos niveles de identidad, la
+tarjeta de cada operador y la persona, con el supuesto de que TC-00013132,
+0000013132 y MR0013132 son la misma porque tienen el mismo número. Si
+usáramos la tarjeta, alguien que deja Transmetro pero sigue en Transurbano
+contaría como abandono y la Agencia gastaría en contactarlo. Aerómetro
+entrega un hash que no se puede enlazar, por eso cada tarjeta suya cuenta
 como una persona aparte.
 
 ### Población
 
-Entra a un corte la persona que tiene al menos 2 abordajes
-válidos en los 28 días anteriores y que no tiene un DELETE vigente en el
-padrón antes del corte.
+Entra a un corte la persona que tiene al menos 2 abordajes válidos en los 28
+días anteriores y sin un DELETE del CDC aplicado antes del corte. La llave
+del CDC se enlaza con la persona por el mismo número.
 
-| Corte | Fecha | Población | Positivos | Tasa |
-|---|---|---:|---:|---:|
-| A | 1 de julio de 2026 | 59,491 | 7,095 | 0.1193 |
-| B | 31 de julio de 2026 | 58,113 | 6,387 | 0.1099 |
-| C | 30 de agosto de 2026 | 57,701 | oculta | oculta |
-
-La tasa sale de dividir los positivos entre la población, por ejemplo
-7,095 entre 59,491 da 0.1193 en el corte A.
+| Corte | Fecha | Población | Positivos | Tasa positiva | Cuenta |
+|---|---|---:|---:|---:|---|
+| A | 1 de julio | 59,491 | 7,095 | 0.1193 | 7,095 / 59,491 = 0.1193 |
+| B | 31 de julio | 58,113 | 6,387 | 0.1099 | 6,387 / 58,113 = 0.1099 |
+| C | 30 de agosto | 57,701 | oculta | oculta | no se puede calcular |
 
 ### Costo de la unidad
 
-Lo medimos de dos formas. Primero armamos la misma
-población y etiqueta pero con la tarjeta como unidad. En el corte A hay
-10,812 tarjetas positivas y en 2,404 de ellas la persona siguió viajando
-con otra tarjeta, o sea 0.222 de los positivos. En el corte B fueron 2,400
-de 10,004, que es 0.240. Con la tarjeta, más o menos uno de cada cinco
-abandonos sería falso.
+Lo medimos por los dos lados. Para ver lo que nos ahorramos con la persona,
+armamos la misma población y etiqueta con la tarjeta como unidad y contamos
+las tarjetas positivas cuya persona siguió viajando con otra tarjeta:
 
-Lo segundo es lo que nos cuesta usar la persona. Las tarjetas de Aerómetro
-no se pueden enlazar, así que en el corte A son 10,429 de las 59,491
-personas, y 1,460 de los 7,095 positivos son solo de Aerómetro, que es
-0.206. Si alguna de esas personas siguió viajando con otra tarjeta, es un
-abandono falso que no podemos medir. En el corte B fueron 1,360 de 6,387,
-que es 0.213.
+- Corte A: 2,404 de 10,812 positivos = 0.222
+- Corte B: 2,400 de 10,004 positivos = 0.240
 
-## Features a la fecha de corte y auditoría de fuga
+Con la tarjeta, más o menos uno de cada cinco abandonos habría sido falso.
 
-El código recibe la fecha de corte como parámetro y calcula los tres cortes
-con la misma función. Los resultados se apilan en una sola tabla con la
-fecha de corte como columna, con 175,305 filas en total: 59,491 de A,
-58,113 de B y 57,701 de C. La tabla queda en el warehouse y también en un
-archivo parquet.
+Lo que nos cuesta la persona es Aerómetro. En el corte A son 10,429 de las
+59,491 unidades. Si alguien de ahí siguió viajando con una tarjeta de otro
+operador, cuenta como abandono y no lo podemos saber. Contamos los positivos
+que solo tienen tarjeta de Aerómetro:
 
-Calculamos 19 features con ventanas de 28 días o menos, iguales en los tres
-cortes. Miden cuántos días lleva la persona sin viajar, cuántos viajes hizo
-en 7, 14 y 28 días, si viene bajando, cuántos días estuvo activa, qué
-operadores usa, a qué horas viaja, cuánto gastó y su perfil en el padrón.
-Todas salen de Silver, así que lo que está en cuarentena no entra. La lista
-completa está en el diccionario de features del repositorio.
+- Corte A: 1,460 de 7,095 positivos = 0.206
+- Corte B: 1,360 de 6,387 positivos = 0.213
 
-Para revisar que no hubiera fuga hicimos la prueba de recorte. Calculamos
-las features del corte A con los datos completos y otra vez con los datos
-cortados al 30 de junio, y comparamos las dos tablas. La hicimos en dos
-niveles:
+## 1.3 Features a la fecha de corte y auditoría de fuga
 
-| Nivel | Qué se recorta | Filas | Diferencias |
+La función construir de ml/features.py recibe la fecha de corte como
+parámetro y calcula los tres cortes con el mismo código. Todo queda en una
+sola tabla, con una fila por unidad en cada corte: 175,305 filas, de las que
+59,491 son de A, 58,113 de B y 57,701 de C. Tiene las columnas unidad_id,
+corte, fecha_corte, tarjetas, las 19 features y etiqueta, que queda vacía en
+C. Está en el warehouse como main_ml.features y también en
+ml/salidas/features_cortes.parquet.
+
+Las features miden los días sin viajar, los viajes en 7, 14 y 28 días, si la
+persona viene bajando, los días activos, los operadores que usa, las horas a
+las que viaja, cuánto gastó y su perfil en el padrón. Ninguna ventana pasa de
+28 días y son iguales en los tres cortes. Todo sale de Silver, entonces lo que
+está en cuarentena no entra. El diccionario, con nombre, qué mide, ventana y
+tabla de origen de cada una, está en docs/proyecto2/diccionario_features.md.
+
+Para la auditoría de fuga calculamos las features del corte A con los datos
+completos y otra vez con los datos recortados al 30 de junio, en dos niveles:
+
+| Nivel | Qué se recorta | Filas comparadas | Diferencias |
 |---|---|---:|---:|
-| Silver | Los eventos de Silver y del padrón antes del 1 de julio | 59,491 | 0 |
-| Crudo | Los 9 archivos originales, corriendo todo el pipeline en una copia aparte | 59,491 | 0 |
+| Silver | Eventos de Silver y del CDC anteriores al 1 de julio | 59,491 | 0 |
+| Crudo | Los 9 archivos originales, con todo el pipeline en una copia aparte | 59,491 | 0 |
 
-Ninguna feature tuvo diferencias, así que no hubo que corregir ninguna. El
-nivel crudo es el más exigente porque también detectaría una fuga dentro
-del pipeline, por ejemplo una deduplicación que mire datos futuros. En ese
-nivel un viaje de MetroRiel solo se queda si ya había terminado antes del
-corte, porque el operador entrega el viaje hasta que se cierra. La prueba se
-repite con estos comandos:
+Ninguna feature falló, por lo que la lista de features corregidas está
+vacía. El nivel crudo es el más estricto porque también atraparía una fuga
+del pipeline, como una deduplicación que mire datos futuros. Ahí un viaje de
+MetroRiel solo se queda si ya había terminado antes del corte, porque el
+operador lo entrega hasta que se cierra. Se repite con:
 
 ```
 python -m ml.prueba_recorte --nivel silver
 python -m ml.prueba_recorte --nivel crudo
 ```
 
-## Línea base y regresión logística regularizada
+## 1.4 Línea base y regresión logística regularizada
 
-Como métrica usamos la PR-AUC. Solo el 11.9% de la población del corte A
-abandona y la Agencia no va a contactar a todos, sino que va a ordenar a
-las personas por riesgo y empezar por las de arriba. La PR-AUC mide qué tan
-arriba de esa lista quedan los que se van, y a diferencia de la ROC-AUC no
-se infla con los miles de negativos fáciles. Además su línea base es fácil
-de leer: un modelo que no sabe nada saca la tasa de positivos, 0.119. La
-ROC-AUC la reportamos al lado solo como referencia.
+### Métrica
 
-Todos los modelos usan los mismos 5 folds estratificados del corte A con
-semilla 42. La etiqueta del corte B no se usó en esta fase. El escalado y el
-one-hot del perfil van dentro de un Pipeline, así que se ajustan solo con
-el fold de entrenamiento.
+Elegimos la PR-AUC. Solo el 11.9% del corte A abandona y la Agencia no va a
+contactar a todos, va a ordenar a las personas por riesgo y empezar por las
+de arriba. La PR-AUC mide qué tan arriba quedan los que se van y no sube por
+los miles de negativos fáciles, como le pasa a la ROC-AUC. Un modelo que no
+sabe nada saca la tasa positiva, 0.119, y ese es el piso. La ROC-AUC la
+ponemos al lado solo como referencia.
 
-| Modelo | PR-AUC validación | Desviación | ROC-AUC |
+### Modelos
+
+Todos usan los mismos 5 folds estratificados del corte A con semilla 42,
+guardados en ml/salidas/folds_A.csv. No usamos la etiqueta del corte B en esta
+fase. El escalado y el one-hot del perfil van dentro de un Pipeline, así se
+ajustan solo con el fold de entrenamiento.
+
+| Modelo | PR-AUC media | Desviación | ROC-AUC |
 |---|---:|---:|---:|
 | Línea base 1: a todos la tasa del corte A | 0.119 | 0.000 | 0.500 |
 | Línea base 2: días desde el último viaje | 0.403 | 0.014 | 0.826 |
@@ -167,36 +168,37 @@ el fold de entrenamiento.
 | Logística L1, λ = 10 | 0.414 | 0.016 | 0.831 |
 | Logística Elastic Net, λ = 10 | 0.415 | 0.016 | 0.831 |
 
-La línea base 2 no entrena nada, solo ordena a las personas por los días
-que llevan sin viajar. La elegimos porque dejar de viajar es justo como
-empieza el abandono. Resultó ser muy fuerte, ya que la logística solo le
-gana por 0.012, menos que la desviación entre folds. Eso nos dice que casi
-toda la señal está en la recencia y que lo demás aporta poco.
+La línea base 2 no entrena nada, solo ordena por los días que la persona lleva
+sin viajar. La escogimos porque dejar de viajar es como empieza el abandono.
+Salió bastante fuerte: la logística le gana por 0.012, menos que la desviación
+entre folds. Casi toda la señal está en la recencia y lo demás aporta poco.
 
-Para la regularización probamos λ desde 0.001 hasta 1,000 con los tres
-castigos y elegimos el que dio mayor PR-AUC media en validación: L2 con
-λ = 100, y L1 y Elastic Net con λ = 10. En scikit-learn 1.8 el tipo de
-castigo se elige con l1_ratio y la fuerza con C, que es 1 entre λ. Con unas
-47,000 filas por fold y 19 features, el resultado casi no cambia hasta
-λ = 10. De ahí para arriba L1 y Elastic Net empiezan a perder porque
-mandan a cero coeficientes que sí servían. Los tres castigos quedaron
-prácticamente empatados.
+### Regularización
+
+Probamos λ de 0.001 a 1,000 con los tres castigos y nos quedamos con el de
+mayor PR-AUC media en validación: λ = 100 en L2 y λ = 10 en L1 y Elastic Net.
+En scikit-learn 1.8 el castigo se elige con l1_ratio y la fuerza con C = 1 / λ.
+Con unas 47,000 filas por fold y 19 features casi no cambia nada hasta λ = 10.
+De ahí para arriba L1 y Elastic Net empiezan a perder porque mandan a cero
+coeficientes que sí servían. Los tres castigos quedaron prácticamente
+empatados.
 
 ![PR-AUC contra lambda](logistica_pr_auc_vs_lambda.png)
 
-Estos son los coeficientes que más empujan hacia el abandono, de la
-logística L2 con λ = 100 entrenada con todo el corte A y con las variables
-escaladas:
+### Coeficientes
 
-| Feature | Coeficiente | Cómo se lee |
+Estos son los 5 que más empujan hacia el abandono, de la logística L2 con
+λ = 100 entrenada con todo el corte A y las variables escaladas:
+
+| Feature | Coeficiente | Interpretación |
 |---|---:|---|
-| Días desde el último viaje | +0.764 | Cada día de más sin viajar sube el riesgo. Es la señal más fuerte. |
-| Viajes en 28 días | +0.332 | Si los viajes de la última semana y los días activos se quedan iguales, tener más viajes en el mes quiere decir que antes viajaba más y ya no. |
-| Perfil general | +0.227 | En el corte A abandona el 17.5% de este perfil, contra 11.9% de toda la población. |
-| Perfil estudiante | +0.100 | También abandonan más que el promedio, el 15.9%. |
-| Viajes en 14 días | +0.086 | Igual que el anterior, viajes concentrados en la semana pasada y no en esta indican que se está yendo. |
+| dias_desde_ultimo_viaje | +0.764 | Entre más días lleva sin viajar, más riesgo. Es la señal más fuerte y tiene sentido. |
+| viajes_28d | +0.332 | Se lee junto con la última semana y los días activos, que restan. Con esos fijos, más viajes en el mes quiere decir que antes viajaba más y ya no. |
+| perfil general | +0.227 | En el corte A abandona el 17.5% de este perfil, contra 11.9% del total. |
+| perfil estudiante | +0.100 | También arriba del promedio, con 15.9%. |
+| viajes_14d | +0.086 | Con la última semana fija, viajes concentrados en la semana anterior indican que se está yendo. |
 
-Del otro lado, lo que más protege es tener muchos días activos, con −0.633,
-haber viajado en la última semana, con −0.519, y no estar en el padrón, con
-−0.312. En el corte A abandona el 11.3% de quienes no están en el padrón,
-contra entre 12.2% y 17.5% de los que sí tienen un perfil registrado.
+Lo que más protege es tener muchos días activos, con -0.633, haber viajado en
+la última semana, con -0.519, y no estar en el padrón, con -0.312. En el corte
+A abandona el 11.3% de quienes no están en el padrón, contra entre 12.2% y
+17.5% de quienes tienen un perfil registrado.

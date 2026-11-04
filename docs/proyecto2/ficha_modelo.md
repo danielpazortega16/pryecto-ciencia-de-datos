@@ -41,9 +41,8 @@ guardado en modelos/modelo_abandono_v1.joblib.
 ### Umbral
 
 Se contacta a quien tenga un puntaje de 0.325 o más. Contactar cuesta Q5,
-la campaña retiene a una de cada cuatro personas que se iban a ir y cada
-retenida vale Q60, así que la ganancia es 10 por los aciertos menos 5 por
-los contactos de más. En el corte A el umbral dejó Q11,480 con precisión de
+la campaña retiene al 25% de quienes se iban a ir y cada retenido vale Q60,
+entonces la ganancia es G = 10 × VP - 5 × FP. En el corte A el umbral dejó Q11,480 con precisión de
 0.454 y recall de 0.405. En el corte B dejó Q7,550 con precisión de 0.408 y
 recall de 0.430. Contactar a todos perdería Q191,030 en el corte A.
 
