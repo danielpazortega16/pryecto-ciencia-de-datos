@@ -30,7 +30,7 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 
 h2 { font-size: 14pt; font-weight: bold; margin: 22px 0 6px 0; }
 h3 { font-size: 12pt; font-weight: bold; margin: 16px 0 4px 0; }
 p { margin: 6px 0 8px 0; }
-h2, h3 { break-after: avoid; }
+h2, h3, p:has(+ table), p:has(+ pre), p:has(+ ul) { break-after: avoid; }
 table, img, pre, tr { break-inside: avoid; }
 table { border-collapse: collapse; margin: 8px 0 12px 0; font-size: 9.5pt; line-height: 1.3; }
 th, td { border: 1px solid #777; padding: 3px 7px; vertical-align: top; }
